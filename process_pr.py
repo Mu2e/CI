@@ -2,11 +2,11 @@ from __future__ import print_function
 
 import re, time, os
 from datetime import datetime
+from time import sleep, gmtime
+from calendar import timegm
 from os.path import join, exists
 from os import environ
-from github_utils import api_rate_limits
 from socket import setdefaulttimeout
-from _py2with3compatibility import run_cmd
 
 from github import Github
 
@@ -28,9 +28,6 @@ which require these tests: {tests_required}.
 TESTS_TRIGGERED_CONFIRMATION = """:hourglass: The following tests have been triggered for ref {commit_link}: {test_list} {tests_already_running_msg}"""
 TESTS_ALREADY_TRIGGERED = """:x: Those tests have already run or are running for ref {commit_link} ({triggered_tests})"""
 
-from time import sleep, gmtime
-from calendar import timegm
-from datetime import datetime
 
 # written by CMS-BOT authors
 def check_rate_limits(rate_limit, rate_limit_max, rate_limiting_resettime, msg=True):
