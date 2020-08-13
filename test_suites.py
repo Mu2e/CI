@@ -10,10 +10,19 @@ REGEX_DEFTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_DEFTEST_TRIGGER, re.I | re.M
 
 # build test
 TEST_REGEXP_MU2E_BUILDTEST_TRIGGER = (
-    "(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(run\s+(build\s*)test(s|)|(test\s+(build)))"
+    "(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(build)|(run\s+build\s+test(s|))"
     % MU2E_BOT_USER
 )
 REGEX_BUILDTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_BUILDTEST_TRIGGER, re.I | re.M)
+
+# build test WITH validation
+TEST_REGEXP_MU2E_BUILDTEST_TRIGGER_VAL = (
+    "(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(build)|(run\s+build\s+test(s|))\s+(and|with)\s+(validation|comparison|compare)"
+    % MU2E_BOT_USER
+)
+REGEX_BUILDTEST_MU2E_PR_VAL  = re.compile(TEST_REGEXP_MU2E_BUILDTEST_TRIGGER_VAL , re.I | re.M)
+
+
 
 # code test
 TEST_REGEXP_MU2E_LINTTEST_TRIGGER = (
