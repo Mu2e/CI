@@ -7,7 +7,7 @@ from github import Github
 from os.path import expanduser, dirname, abspath, join, exists
 from optparse import OptionParser
 from socket import setdefaulttimeout
-from github_utils import api_rate_limits
+from process_pr import api_rate_limits
 setdefaulttimeout(120)
 import sys
 import os
