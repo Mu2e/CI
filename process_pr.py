@@ -4,7 +4,7 @@ import re, time, os
 from datetime import datetime
 from os.path import join, exists
 from os import environ
-from github_utils import get_token, edit_pr, api_rate_limits
+from github_utils import api_rate_limits
 from socket import setdefaulttimeout
 from _py2with3compatibility import run_cmd
 
