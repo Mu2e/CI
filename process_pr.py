@@ -28,6 +28,39 @@ which require these tests: {tests_required}.
 TESTS_TRIGGERED_CONFIRMATION = """:hourglass: The following tests have been triggered for ref {commit_link}: {test_list} {tests_already_running_msg}"""
 TESTS_ALREADY_TRIGGERED = """:x: Those tests have already run or are running for ref {commit_link} ({triggered_tests})"""
 
+from time import sleep, gmtime
+from calendar import timegm
+from datetime import datetime
+
+# written by CMS-BOT authors
+def check_rate_limits(rate_limit, rate_limit_max, rate_limiting_resettime, msg=True):
+    doSleep = 0
+    rate_reset_sec = rate_limiting_resettime - timegm(gmtime()) + 5
+    if msg: print('API Rate Limit: %s/%s, Reset in %s sec i.e. at %s' % (
+        rate_limit, rate_limit_max, rate_reset_sec, datetime.fromtimestamp(rate_limiting_resettime)))
+    if rate_limit < 100:
+        doSleep = rate_reset_sec
+    elif rate_limit < 250:
+        doSleep = 30
+    elif rate_limit < 500:
+        doSleep = 10
+    elif rate_limit < 750:
+        doSleep = 5
+    elif rate_limit < 1000:
+        doSleep = 2
+    elif rate_limit < 1500:
+        doSleep = 1
+    if (rate_reset_sec < doSleep): doSleep = rate_reset_sec
+    if doSleep > 0:
+        if msg: print("Slowing down for %s sec due to api rate limits %s approching zero" % (doSleep, rate_limit))
+        sleep(doSleep)
+    return
+
+# written by CMS-BOT authors
+def api_rate_limits(gh, msg=True):
+    gh.get_rate_limit()
+    check_rate_limits(gh.rate_limiting[0], gh.rate_limiting[1], gh.rate_limiting_resettime, msg)
+
 
 # Mu2e triggering statements are in 'test_suites.py'
 import test_suites
