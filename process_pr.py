@@ -27,8 +27,8 @@ which require these tests: {tests_required}.
 <a href="https://mu2ewiki.fnal.gov/wiki/Git#GitHub_Pull_Request_Procedures_and_FNALbuild">FNALbuild is explained here.</a>
 """
 
-TESTS_TRIGGERED_CONFIRMATION = """:hourglass: The following tests have been triggered for ref {commit_link}: {test_list} {tests_already_running_msg}"""
-TESTS_ALREADY_TRIGGERED = """:x: Those tests have already run or are running for ref {commit_link} ({triggered_tests})"""
+TESTS_TRIGGERED_CONFIRMATION = """:hourglass: The following tests have been triggered for {commit_link}: {test_list} {tests_already_running_msg}"""
+TESTS_ALREADY_TRIGGERED = """:x: Those tests have already run or are running for {commit_link} ({triggered_tests})"""
 
 
 # written by CMS-BOT authors
@@ -469,7 +469,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     # construct a reply if tests have been triggered.
     tests_triggered_msg = ''
     already_running_msg = ''
-    commitlink = 'https://github.com/%s/pull/%s/commits/%s' % (repo.full_name, prId, git_commit.sha)
+    commitlink = git_commit.sha
 
     if len(tests_to_trigger) > 0:
         if len(tests_already_triggered) > 0:
