@@ -205,9 +205,9 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         '\n'.join(['- %s' % s for s in modified_top_level_folders])
     )
 
-    # TODO: print modified monorepo package folders in 'greeting' message
     watchers = read_repo_file(repo_config, "watchers.yaml", {})
 
+    # Figure out who is watching the modified packages and notify them
     print ('watchers:', watchers)
     watcher_text = ''
     watcher_list = []
@@ -219,7 +219,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     watcher_list = set(watcher_list)
     if len(watcher_list) > 0:
         watcher_text = 'The following users requested to be notified about these packages:\n'
-        watcher_text += '@%s, '.join(watcher_list)
+        watcher_text += ', '.join(['@%s' % x for x in watcher_list])
     
     # get required tests
     test_requirements = test_suites.get_tests_for(modified_top_level_folders)
