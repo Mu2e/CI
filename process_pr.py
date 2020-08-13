@@ -124,7 +124,7 @@ def create_properties_file_for_test(test, repository, pr_number, pr_commit_sha, 
     parameters = {}
     if test == 'build_and_val':
         test = 'build'
-        parameters["TRIGGER_VALIDATION"] = 1
+        parameters["TRIGGER_VALIDATION"] = '1'
     repo_partsX = repository.replace("/", "-") # mu2e/Offline ---> mu2e-Offline
     out_file_name = "trigger-mu2e-%s-%s-%s.properties" % (test.replace(' ', '-'), repo_partsX, pr_number)
 
