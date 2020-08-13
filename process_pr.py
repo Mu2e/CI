@@ -10,6 +10,8 @@ from socket import setdefaulttimeout
 
 from github import Github
 
+import test_suites
+
 setdefaulttimeout(300)
 
 
@@ -57,10 +59,6 @@ def check_rate_limits(rate_limit, rate_limit_max, rate_limiting_resettime, msg=T
 def api_rate_limits(gh, msg=True):
     gh.get_rate_limit()
     check_rate_limits(gh.rate_limiting[0], gh.rate_limiting[1], gh.rate_limiting_resettime, msg)
-
-
-# Mu2e triggering statements are in 'test_suites.py'
-import test_suites
 
 def check_test_cmd_mu2e(full_comment, repository):
     # we have a suite of regex statements to support triggering all kinds of tests.
@@ -327,14 +325,6 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 last_time_seen = comment.created_at
                 print (comment.user.login, last_time_seen)
     print ("Last time seen", last_time_seen)
-
-    # we might not have commented, but e.g. changed a label instead...
-    # for event in pr.get_issue_events():
-    #     if event.actor.login == repo_config.CMSBUILD_USER and event.event in ['labeled', 'unlabeled']:
-    #         if last_time_seen is None or last_time_seen < event.created_at:
-    #             last_time_seen = event.created_at
-    #             print (last_time_seen, event)
-    # print ("Last time seen", last_time_seen)
 
     # now we process comments
     for comment in comments:
