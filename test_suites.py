@@ -4,7 +4,7 @@ MU2E_BOT_USER = repo_config.CMSBUILD_USER #"FNALbuild"
 
 # all default tests
 TEST_REGEXP_MU2E_DEFTEST_TRIGGER = (
-    "(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(run\s+test(s|)|test)(\.|$)" % MU2E_BOT_USER
+    "(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(run\s+test(s|)|test)" % MU2E_BOT_USER
 )
 REGEX_DEFTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_DEFTEST_TRIGGER, re.I | re.M)
 
@@ -82,5 +82,5 @@ TESTS  = [
     [REGEX_BUILDTEST_MU2E_PR, lambda matchre: (['build'], 'current')],
     [REGEX_LINTTEST_MU2E_PR, lambda matchre: (['code checks'], 'current')],
     [REGEX_VALIDATIONTEST_MU2E_PR, lambda matchre: (['validation'], 'current')],
-    #[REGEX_DEFTEST_MU2E_PR, lambda matchre: (DEFAULT_TESTS, 'current')],
+    [REGEX_DEFTEST_MU2E_PR, lambda matchre: (DEFAULT_TESTS, 'current')],
 ]
