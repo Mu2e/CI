@@ -209,7 +209,18 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     watchers = read_repo_file(repo_config, "watchers.yaml", {})
 
     print ('watchers:', watchers)
-
+    watcher_text = ''
+    watcher_list = []
+    modified_targs = [x.lower() for x in modified_top_level_folders]
+    for user, packages in watchers:
+        for pkg in packages:
+            if pkg.lower() in modified_targs:
+                watcher_list.append(user)
+    watcher_list = set(watcher_list)
+    if len(watcher_list) > 0:
+        watcher_text = 'The following users requested to be notified about these packages:\n'
+        watcher_text += '@%s, '.join(watcher_list)
+    
     # get required tests
     test_requirements = test_suites.get_tests_for(modified_top_level_folders)
     print ('Tests required: ', test_requirements)
@@ -493,7 +504,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 pr_author=pr_author,
                 changed_folders='\n'.join(['- %s' % s for s in modified_top_level_folders]),
                 tests_required=', '.join(test_requirements),
-                watchers='',
+                watchers=watcher_text,
                 tests_triggered_msg=tests_triggered_msg
             ))
 
