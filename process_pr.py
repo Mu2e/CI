@@ -218,7 +218,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 watcher_list.append(user)
     watcher_list = set(watcher_list)
     if len(watcher_list) > 0:
-        watcher_text = 'The following users requested to be notified about these packages:\n'
+        watcher_text = 'The following users requested to be notified about changes to these packages:\n'
         watcher_text += ', '.join(['@%s' % x for x in watcher_list])
     
     # get required tests
