@@ -212,7 +212,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     watcher_text = ''
     watcher_list = []
     modified_targs = [x.lower() for x in modified_top_level_folders]
-    for user, packages in watchers:
+    for user, packages in watchers.items():
         for pkg in packages:
             if pkg.lower() in modified_targs:
                 watcher_list.append(user)
