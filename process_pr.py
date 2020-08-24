@@ -211,16 +211,26 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     print ('watchers:', watchers)
     watcher_text = ''
     watcher_list = []
-    modified_targs = [x.lower() for x in modified_top_level_folders]
-    for user, packages in watchers.items():
-        for pkg in packages:
-            if pkg.lower() in modified_targs:
-                watcher_list.append(user)
-    watcher_list = set(watcher_list)
-    if len(watcher_list) > 0:
-        watcher_text = 'The following users requested to be notified about changes to these packages:\n'
-        watcher_text += ', '.join(['@%s' % x for x in watcher_list])
-    
+    try:
+        modified_targs = [x.lower() for x in modified_top_level_folders]
+        for user, packages in watchers.items():
+            for pkgpatt in packages:
+                try:
+                    regex_comp = re.compile(pkgpatt, re.I)
+                    for target in modified_targs:
+                        if (target == '/' and pkgpatt == '/') or regex_comp.match(target.strip()):
+                            watcher_list.append(user)
+                            break
+                except:
+                    print("ERROR: Possibly bad regex for watching user %s: %s" % (user, pkgpatt))
+             
+        watcher_list = set(watcher_list)
+        if len(watcher_list) > 0:
+            watcher_text = 'The following users requested to be notified about changes to these packages:\n'
+            watcher_text += ', '.join(['@%s' % x for x in watcher_list])
+    except Exception as e:
+        print(" ERROR: there was a problem while trying to build the watcher list...")
+        print("%r" % e)
     # get required tests
     test_requirements = test_suites.get_tests_for(modified_top_level_folders)
     print ('Tests required: ', test_requirements)
