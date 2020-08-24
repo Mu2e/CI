@@ -1,14 +1,14 @@
 #  Map between github username and the list of packages to watch.
-# Package is a regular expression which will be automatically delimited by ".*"
 # Format of this file is
 #ghuser:
-#  - subsystem1/
-#  - subsystem/package1
+#  - package1
+#  - package2
 #ghteam:
-#  - subsystem2/package1
-#  - subsystem2/package2
-#LArSoft/Core:
-#  - larsoft
+#  - package1
+#  - package2
+
+# A 'package' is the name of a top level folder in Offline. Case-insensitive.
+# To notify about any changes to files in the root Offline directory (e.g. SConstruct, setup.sh), '/' can be used.
 
 ryuwd:
   - Mu2eUtilities
