@@ -15,4 +15,4 @@
 
 ryuwd:
   - Mu2eUtilities
-  - Tracker(*.?)  # I want to be notified about any folder starting with 'Tracker'
+  - Tracker(.*?)  # I want to be notified about any folder starting with 'Tracker'
