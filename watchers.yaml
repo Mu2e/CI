@@ -7,7 +7,10 @@
 #  - package1
 #  - package2
 
-# A 'package' is the name of a top level folder in Offline. Case-insensitive.
+# A 'package' is the name of a top level folder in Offline. Case-insensitive. 
+# Regex expressions are supported (using the 're' library), see 
+# https://docs.python.org/3/library/re.html 
+# for an exhaustive explanation of syntax.
 # To notify about any changes to files in the root Offline directory (e.g. SConstruct, setup.sh), '/' can be used.
 
 ryuwd:
