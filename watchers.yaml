@@ -16,3 +16,6 @@
 ryuwd:
   - Mu2eUtilities
   - Tracker(.*?)  # I want to be notified about any folder starting with 'Tracker'
+resnegfk:
+  - Mu2eG4
+  - G4Helper
