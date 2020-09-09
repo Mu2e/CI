@@ -156,8 +156,7 @@ def get_modified(modified_files):
 
     return set(modified_top_level_folders)
 
-def get_authorised_users(gh, repo):
-    mu2eorg = gh.get_organization("Mu2e")
+def get_authorised_users(mu2eorg, repo):
     mu2e_write = mu2eorg.get_team_by_slug('write')
     mu2e_write_mems =['ryuwd'] + [mem.login for mem in mu2e_write.get_members()]
 
@@ -178,16 +177,17 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     if pr.changed_files == 0:
         print("Ignoring: PR with no files changed")
         return
-    author_org_membership = issue.user.get_organization_membership('Mu2e')
     
-    if not author_org_membership.state == 'active':
+    mu2eorg = gh.get_organization("Mu2e")
+    
+    if not mu2eorg.has_in_members(issue.user):
         print ('Ignoring: PR not from an organisation member')
         if not 'CI unavailable' in [x.name for x in issue.labels]:
             issue.create_comment(PR_AUTHOR_NONMEMBER)
             issue.edit(labels=['CI unavailable'])
         return
 
-    authorised_users = get_authorised_users(gh, repo)
+    authorised_users = get_authorised_users(mu2eorg, repo)
 
     print ("Authorised Users: ", authorised_users)
 
