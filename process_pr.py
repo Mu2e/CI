@@ -30,6 +30,11 @@ which require these tests: {tests_required}.
 TESTS_TRIGGERED_CONFIRMATION = """:hourglass: The following tests have been triggered for {commit_link}: {test_list} {tests_already_running_msg}"""
 TESTS_ALREADY_TRIGGERED = """:x: Those tests have already run or are running for {commit_link} ({triggered_tests})"""
 
+PR_AUTHOR_NONMEMBER = """:x: The author of this pull request is not a member of the Mu2e organisation!
+
+Continuous integration actions are not available. 
+
+"""
 
 # written by CMS-BOT authors
 def check_rate_limits(rate_limit, rate_limit_max, rate_limiting_resettime, msg=True):
@@ -172,6 +177,14 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
 
     if pr.changed_files == 0:
         print("Ignoring: PR with no files changed")
+        return
+    author_org_membership = issue.user.get_organization_membership('Mu2e')
+    
+    if not author_org_membership.state == 'active':
+        print ('Ignoring: PR not from an organisation member')
+        if not 'CI unavailable' in [x.name for x in issue.labels]:
+            issue.create_comment(PR_AUTHOR_NONMEMBER)
+            issue.edit(labels=['CI unavailable'])
         return
 
     authorised_users = get_authorised_users(gh, repo)
