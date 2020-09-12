@@ -27,9 +27,7 @@ which require these tests: {tests_required}.
 <a href="https://mu2ewiki.fnal.gov/wiki/Git#GitHub_Pull_Request_Procedures_and_FNALbuild">FNALbuild is explained here.</a>
 """
 
-TESTS_TRIGGERED_CONFIRMATION = """:hourglass: The following tests have been triggered for {commit_link}: {test_list} {tests_already_running_msg}
-
-Jobs in build queue: {build_queue_str}
+TESTS_TRIGGERED_CONFIRMATION = """:hourglass: The following tests have been triggered for {commit_link}: {test_list} {tests_already_running_msg} (Build queue {build_queue_str})
 """
 
 TESTS_ALREADY_TRIGGERED = """:x: Those tests have already run or are running for {commit_link} ({triggered_tests})"""
@@ -49,17 +47,17 @@ import json
 def get_build_queue_size():
     jenkins_url = "https://buildmaster.fnal.gov/buildmaster/queue/api/json?pretty=true"
     
-    bqsize = "API unavailable"
+    bqsize = "- API unavailable"
     
     try:
         contents = json.load(urlopen(jenkins_url))
         nitems = len(contents['items'])
-        bqsize = "none"
+        bqsize = "is empty"
         if nitems > 0:
-            bqsize = "%d jobs" % nitems
+            bqsize = "has %d jobs" % nitems
         
     except:
-        print("issues accessing Jenkins Build Queue API")
+        print("Issues accessing Jenkins Build Queue API")
     return bqsize
 
 # written by CMS-BOT authors
