@@ -39,7 +39,12 @@ PR_AUTHOR_NONMEMBER = """:x: The author of this pull request is not a member of 
 Continuous integration actions are not available. 
 
 """
-import urllib.request
+
+try: #python3
+    from urllib.request import urlopen
+except: #python2
+    from urllib2 import urlopen
+ 
 import json
 def get_build_queue_size():
     jenkins_url = "https://buildmaster.fnal.gov/buildmaster/queue/api/json?pretty=true"
@@ -47,7 +52,7 @@ def get_build_queue_size():
     bqsize = "API unavailable"
     
     try:
-        contents = json.load(urllib.request.urlopen(jenkins_url))
+        contents = json.load(urlopen(jenkins_url))
         nitems = len(contents['items'])
         bqsize = "none"
         if nitems > 0:
