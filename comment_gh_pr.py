@@ -1,5 +1,6 @@
 from github import Github
-
+from process_pr import process_pr
+import repo_config
 def comment_gh_pr(gh, repo, pr, msg):
     repo = gh.get_repo(repo)
     pr   = repo.get_issue(pr)
@@ -40,3 +41,6 @@ def comment_gh_pr(gh, repo, pr, msg):
     # some status updates by commenting might not be necessary.
     if not 'NOCOMMENT' in comment_msg:
         pr.create_comment(comment_msg)
+    
+    # update labels
+    process_pr(repo_config, gh, repo, pr, False, cmsbuild_user="FNALbuild")
