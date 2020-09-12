@@ -51,7 +51,8 @@ def get_build_queue_size():
         nitems = len(contents['items'])
         bqsize = "none"
         if nitems > 0:
-            bqsize = f"{nitems} jobs"
+            bqsize = "%d jobs" % nitems
+        
     except:
         print("issues accessing Jenkins Build Queue API")
     return bqsize
