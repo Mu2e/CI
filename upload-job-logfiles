@@ -7,7 +7,7 @@ from github import Github
 from github.InputFileContent import InputFileContent
 from os.path import expanduser, dirname, abspath, join, exists
 from sys import exit
-import re, sys
+import re, sys,os
 from socket import setdefaulttimeout
 setdefaulttimeout(120)
 
