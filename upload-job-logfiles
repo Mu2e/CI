@@ -7,7 +7,7 @@ from github import Github
 from github.InputFileContent import InputFileContent
 from os.path import expanduser, dirname, abspath, join, exists
 from sys import exit
-import re, sys,os
+import re, sys, os
 from socket import setdefaulttimeout
 setdefaulttimeout(120)
 
@@ -18,7 +18,7 @@ def prepare_file(filename):
   path, tail = os.path.split(filename)
   return tail, InputFileContent(contents_text)
 
-gh = Github(login_or_token=environ['GITHUBTOKEN'], retry=3)
+gh = Github(login_or_token=os.environ['GITHUBTOKEN'], retry=3)
 
 # pull out basic jenkins environment info
 REPOSITORY = os.environ['REPOSITORY']
