@@ -181,8 +181,8 @@ def get_modified(modified_files):
     return set(modified_top_level_folders)
 
 def get_authorised_users(mu2eorg, repo):
-    mu2e_write = mu2eorg.get_team_by_slug('write')
-    mu2e_write_mems =['ryuwd'] + [mem.login for mem in mu2e_write.get_members()]
+    mu2e_write = mu2eorg.get_team_by_slug('fnalbuild-users')
+    mu2e_write_mems =[mem.login for mem in mu2e_write.get_members()]
 
     # users authorised to communicate with this bot
     return set(mu2e_write_mems)
