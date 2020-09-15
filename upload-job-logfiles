@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+"""
+Upload logfiles to Gist
+"""
+import github
+from github import Github
+from github.InputFileContent import InputFileContent
+from os.path import expanduser, dirname, abspath, join, exists
+from sys import exit
+import re, sys
+from socket import setdefaulttimeout
+setdefaulttimeout(120)
+
+def prepare_file(filename):
+  contents_text=''
+  with open(filename, 'r') as f:
+    contents_text = f.read()
+  path, tail = os.path.split(filename)
+  return tail, InputFileContent(contents_text)
+
+gh = Github(login_or_token=environ['GITHUBTOKEN'], retry=3)
+
+# pull out basic jenkins environment info
+REPOSITORY = os.environ['REPOSITORY']
+PR_NUMBER = os.environ['PULL_REQUEST']
+PR_REV = os.environ['COMMIT_SHA']
+MASTER_REV = os.environ['MASTER_COMMIT_SHA']
+
+# all arguments point to logfiles to be uploaded, in argument order
+
+files_to_upload = {}
+for filename in sys.argv[1:]:
+  gist_fn, content = prepare_file(filename)
+  files_to_upload[gist_fn] = content
+
+bot_user = gh.get_user()
+
+fmt = (REPOSITORY, PR_NUMBER, PR_REV, MASTER_REV)
+
+gist = bot_user.create_gist(public=False, files=files_to_upload, description='%s CI artefacts for PR #%s. PR revision %s was merged at master revision %s and tested.' % fmt)
+
+# print gist link
+print (gist.url)
