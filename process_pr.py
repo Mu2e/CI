@@ -575,7 +575,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 changed_folders='\n'.join(['- %s' % s for s in modified_top_level_folders]),
                 tests_required=', '.join(test_requirements),
                 watchers=watcher_text,
-                auth_teams='@' + ', @'.join(authed_teams),
+                auth_teams=', '.join(['@Mu2e/%s' % team for team in authed_teams]),
                 tests_triggered_msg=tests_triggered_msg,
                 base_branch=pr.base.ref
             ))
