@@ -19,6 +19,8 @@ You have proposed changes to files in these packages:
 
 which require these tests: {tests_required}.
 
+{auth_teams} have access to CI actions on {base_branch}.
+
 {watchers}
 {tests_triggered_msg}
 
@@ -196,14 +198,15 @@ def get_authorised_users(mu2eorg, repo, branch='all'):
     if branch in yaml_contents:
         authed_teams += yaml_contents[branch]
     
-    print("Authorised Teams: ", set(authed_teams))
+    authed_teams = set(authed_teams)
+    print("Authorised Teams: ", authed_teams)
     
-    for team_slug in set(authed_teams):
+    for team_slug in authed_teams:
         teamobj = mu2eorg.get_team_by_slug(team_slug)
         authed_users += [mem.login for mem in teamobj.get_members()]
     
     # users authorised to communicate with this bot
-    return set(authed_users)
+    return set(authed_users), authed_teams
 
 
 def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=False):
@@ -229,10 +232,10 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             issue.edit(labels=['CI unavailable'])
         return
 
-    authorised_users = get_authorised_users(mu2eorg, repo, branch=pr.base.ref)
+    authorised_users, authed_teams = get_authorised_users(mu2eorg, repo, branch=pr.base.ref)
 
     print ("Authorised Users: ", authorised_users)
-
+    
     not_seen_yet = True
     last_time_seen = None
     labels = []
@@ -571,7 +574,9 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 changed_folders='\n'.join(['- %s' % s for s in modified_top_level_folders]),
                 tests_required=', '.join(test_requirements),
                 watchers=watcher_text,
-                tests_triggered_msg=tests_triggered_msg
+                auth_teams='@' + ', @'.join(authed_teams),
+                tests_triggered_msg=tests_triggered_msg,
+                base_branch=pr.base.ref
             ))
 
     elif len(tests_to_trigger) > 0:
