@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import re, time, os
 from datetime import datetime
 from time import sleep, gmtime
@@ -7,9 +5,9 @@ from calendar import timegm
 from os.path import join, exists
 from os import environ
 from socket import setdefaulttimeout
-
 from github import Github
 
+import yaml
 import test_suites
 
 setdefaulttimeout(300)
@@ -129,8 +127,6 @@ def check_test_cmd_mu2e(full_comment, repository):
 
 # Read a yaml file
 def read_repo_file(repo_config, repo_file, default=None):
-    import yaml
-
     file_path = join(repo_config.CONFIG_DIR, repo_file)
     contents = default
     if exists(file_path):
