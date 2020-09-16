@@ -20,12 +20,12 @@ You have proposed changes to files in these packages:
 
 which require these tests: {tests_required}.
 
-{auth_teams} have access to CI actions on {base_branch}.
+{auth_teams} have access to CI actions on [{base_branch}](/Mu2e/Offline/tree/{base_branch}).
 
 {watchers}
 {tests_triggered_msg}
 
-<a href="https://mu2ewiki.fnal.gov/wiki/Git#GitHub_Pull_Request_Procedures_and_FNALbuild">FNALbuild is explained here.</a>
+[Read more about FNALbuild.](https://mu2ewiki.fnal.gov/wiki/Git#GitHub_Pull_Request_Procedures_and_FNALbuild)
 """
 
 TESTS_TRIGGERED_CONFIRMATION = """:hourglass: The following tests have been triggered for {commit_link}: {test_list} {tests_already_running_msg} (Build queue {build_queue_str})
