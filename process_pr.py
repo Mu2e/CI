@@ -9,6 +9,7 @@ from github import Github
 
 import yaml
 import test_suites
+import repo_config
 
 setdefaulttimeout(300)
 
