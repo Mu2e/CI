@@ -12,5 +12,5 @@ all:
 master:
   - fnalbuild-users
 
-#Mu2eII_SM21:
-#  - ...
+Mu2eII_SM21:
+  - mu2eii_sm21_ci
