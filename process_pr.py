@@ -25,7 +25,7 @@ which require these tests: {tests_required}.
 {watchers}
 {tests_triggered_msg}
 
-[Read more about FNALbuild.](https://mu2ewiki.fnal.gov/wiki/Git#GitHub_Pull_Request_Procedures_and_FNALbuild)
+[About FNALbuild.](https://mu2ewiki.fnal.gov/wiki/Git#GitHub_Pull_Request_Procedures_and_FNALbuild) [Code review on Mu2e/Offline.](https://mu2ewiki.fnal.gov/wiki/GitHubWorkflow#Code_Review)
 """
 
 TESTS_TRIGGERED_CONFIRMATION = """:hourglass: The following tests have been triggered for {commit_link}: {test_list} {tests_already_running_msg} (Build queue {build_queue_str})
