@@ -1,13 +1,16 @@
 # GitHub Teams that are authorised to communicate with FNALbuild.
 # GitHub usernames are not supported.
 
+# All teams must be created inside the Mu2e organisation at
+# https://github.com/orgs/Mu2e/teams
+
 # Any requests to edit this file should be closely checked.
 
 all:
-  - mu2e/write
+  - write
 
 master:
-  - mu2e/fnalbuild-users
+  - fnalbuild-users
 
 #Mu2eII_SM21:
 #  - ...
