@@ -6,8 +6,8 @@
 all:
   - mu2e/write
 
-#master:
-#  - mu2e/write
+master:
+  - mu2e/fnalbuild-users
 
 
 #Mu2eII_SM21:
