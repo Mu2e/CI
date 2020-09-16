@@ -1,0 +1,15 @@
+# GitHub Teams that are authorised to communicate with FNALbuild.
+# GitHub usernames are not supported.
+
+# Any requests to edit this file should be closely checked.
+
+all:
+  - mu2e/write
+
+#master:
+#  - mu2e/write
+
+
+#Mu2eII_SM21:
+#  - ...
+
