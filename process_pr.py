@@ -179,13 +179,35 @@ def get_modified(modified_files):
             modified_top_level_folders.append('/')
 
     return set(modified_top_level_folders)
+def read_repo_file(repo_config, repo_file, default=None):
+    import yaml
 
-def get_authorised_users(mu2eorg, repo):
-    mu2e_write = mu2eorg.get_team_by_slug('fnalbuild-users')
-    mu2e_write_mems =[mem.login for mem in mu2e_write.get_members()]
+    file_path = join(repo_config.CONFIG_DIR, repo_file)
+    contents = default
+    if exists(file_path):
+        contents = yaml.load(open(file_path,'r'), Loader=yaml.FullLoader)
+        if not contents:
+            contents = default
+    return contents
 
+def get_authorised_users(mu2eorg, repo, branch='all'):
+    file_path = join(repo_config.CONFIG_DIR, 'auth_teams.yaml')
+    yaml_contents = {}
+    with open(file_path, 'r') as f:
+        yaml_contents = yaml.load(open(file_path,'r'), Loader=yaml.FullLoader)
+    authed_users = []
+    authed_teams = yaml_contents['all'] 
+    if branch in yaml_contents:
+        authed_teams += yaml_contents[branch]
+    
+    print("Authorised Teams: ", set(authed_teams))
+    
+    for team_slug in set(authed_teams):
+        teamobj = mu2eorg.get_team_by_slug(team_slug)
+        authed_users += [mem.login for mem in teamobj.get_members()]
+    
     # users authorised to communicate with this bot
-    return set(mu2e_write_mems)
+    return set(authed_users)
 
 
 def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=False):
@@ -211,7 +233,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             issue.edit(labels=['CI unavailable'])
         return
 
-    authorised_users = get_authorised_users(mu2eorg, repo)
+    authorised_users = get_authorised_users(mu2eorg, repo, branch=pr.base.ref)
 
     print ("Authorised Users: ", authorised_users)
 
