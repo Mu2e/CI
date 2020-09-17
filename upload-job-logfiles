@@ -33,7 +33,7 @@ MASTER_REV = os.environ['MASTER_COMMIT_SHA']
 files_to_upload = {}
 for filename in sys.argv[1:]:
   gist_fn, content = prepare_file(filename)
-  files_to_upload[gist_fn] = content
+  files_to_upload[gist_fn] = {'content': content}
 
 fmt = (REPOSITORY, PR_NUMBER, PR_REV, MASTER_REV)
 
