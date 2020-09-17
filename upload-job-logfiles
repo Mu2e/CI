@@ -50,7 +50,7 @@ data = {
 
 r = requests.post('https://api.github.com/gists', 
               headers = headers,
-              json = json.dumps(data))
+              data = json.dumps(data))
 
 response_json = r.json()
 
