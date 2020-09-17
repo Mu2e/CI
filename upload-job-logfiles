@@ -16,6 +16,9 @@ def prepare_file(filename):
   with open(filename, 'r') as f:
     contents_text = f.read()
   path, tail = os.path.split(filename)
+  
+  print ("Prepared file: %s" % tail)
+  
   return tail, InputFileContent(contents_text)
 
 gh = Github(login_or_token=os.environ['GITHUBTOKEN'], retry=3)
