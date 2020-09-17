@@ -35,8 +35,6 @@ for filename in sys.argv[1:]:
   gist_fn, content = prepare_file(filename)
   files_to_upload[gist_fn] = content
 
-print(files_to_upload, file=sys.stderr)
-
 fmt = (REPOSITORY, PR_NUMBER, PR_REV, MASTER_REV)
 
 # https://docs.github.com/en/rest/reference/gists#create-a-gist
@@ -55,6 +53,8 @@ r = requests.post('https://api.github.com/gists',
               json = json.dumps(data))
 
 response_json = r.json()
+
+print(response_json, file=sys.stderr)
 
 # print gist link
 if 'html_url' in response_json:
