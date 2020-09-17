@@ -39,7 +39,7 @@ fmt = (REPOSITORY, PR_NUMBER, PR_REV, MASTER_REV)
 
 # https://docs.github.com/en/rest/reference/gists#create-a-gist
 headers = {'Accept': 'application/vnd.github.v3+json',
-          'Authentication': 'token %s' % os.environ['GITHUBTOKEN']
+          'Authorization': 'token %s' % os.environ['GITHUBTOKEN']
 }
 
 data = {
