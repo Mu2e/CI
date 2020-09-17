@@ -2,14 +2,15 @@
 """
 Upload logfiles to Gist
 """
-import github
-from github import Github
-from github.InputFileContent import InputFileContent
+
 from os.path import expanduser, dirname, abspath, join, exists
 from sys import exit
 import re, sys, os
 from socket import setdefaulttimeout
 setdefaulttimeout(120)
+
+import json
+import requests
 
 def prepare_file(filename):
   contents_text=''
@@ -19,9 +20,7 @@ def prepare_file(filename):
   
   print ("Prepared file: %s" % tail, file=sys.stderr)
   
-  return tail, InputFileContent(contents_text)
-
-gh = Github(login_or_token=os.environ['GITHUBTOKEN'], retry=3)
+  return tail, contents_text
 
 # pull out basic jenkins environment info
 REPOSITORY = os.environ['REPOSITORY']
@@ -36,12 +35,29 @@ for filename in sys.argv[1:]:
   gist_fn, content = prepare_file(filename)
   files_to_upload[gist_fn] = content
 
-bot_user = gh.get_user()
-
 print(files_to_upload, file=sys.stderr)
 
 fmt = (REPOSITORY, PR_NUMBER, PR_REV, MASTER_REV)
-gist = bot_user.create_gist(False, files_to_upload, description='%s CI artefacts for PR #%s. PR revision %s was merged at master revision %s and tested.' % fmt)
+
+# https://docs.github.com/en/rest/reference/gists#create-a-gist
+headers = {'Accept': 'application/vnd.github.v3+json',
+          'Authentication': 'token %s' % os.environ['GITHUBTOKEN']
+}
+
+data = {
+  'description': '%s CI artefacts for PR #%s. PR revision %s was merged at master revision %s.' % fmt,
+  'files': files_to_upload,
+  'public': True
+}
+
+r = requests.post('https://api.github.com/gists', 
+              headers = headers,
+              json = json.dumps(data))
+
+response_json = r.json()
 
 # print gist link
-print (gist.url)
+if 'html_url' in response_json:
+  print (response_json['html_url'])
+else:
+  sys.exit(1)
