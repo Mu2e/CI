@@ -38,9 +38,10 @@ for filename in sys.argv[1:]:
 
 bot_user = gh.get_user()
 
-fmt = (REPOSITORY, PR_NUMBER, PR_REV, MASTER_REV)
+print(files_to_upload)
 
-gist = bot_user.create_gist(public=False, files=files_to_upload, description='%s CI artefacts for PR #%s. PR revision %s was merged at master revision %s and tested.' % fmt)
+fmt = (REPOSITORY, PR_NUMBER, PR_REV, MASTER_REV)
+gist = bot_user.create_gist(False, files_to_upload, description='%s CI artefacts for PR #%s. PR revision %s was merged at master revision %s and tested.' % fmt)
 
 # print gist link
 print (gist.url)
