@@ -54,7 +54,7 @@ r = requests.post('https://api.github.com/gists',
 
 response_json = r.json()
 
-print(response_json, file=sys.stderr)
+#print(response_json, file=sys.stderr)
 
 # print gist link
 if 'html_url' in response_json:
