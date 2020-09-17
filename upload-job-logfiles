@@ -17,7 +17,7 @@ def prepare_file(filename):
     contents_text = f.read()
   path, tail = os.path.split(filename)
   
-  print ("Prepared file: %s" % tail)
+  print ("Prepared file: %s" % tail, file=sys.stderr)
   
   return tail, InputFileContent(contents_text)
 
@@ -38,7 +38,7 @@ for filename in sys.argv[1:]:
 
 bot_user = gh.get_user()
 
-print(files_to_upload)
+print(files_to_upload, file=sys.stderr)
 
 fmt = (REPOSITORY, PR_NUMBER, PR_REV, MASTER_REV)
 gist = bot_user.create_gist(False, files_to_upload, description='%s CI artefacts for PR #%s. PR revision %s was merged at master revision %s and tested.' % fmt)
