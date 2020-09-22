@@ -45,7 +45,7 @@ headers = {'Accept': 'application/vnd.github.v3+json',
 data = {
   'description': '%s CI artefacts for PR #%s. PR revision %s was merged at master revision %s.' % fmt,
   'files': files_to_upload,
-  'public': True
+  'public': False
 }
 
 r = requests.post('https://api.github.com/gists', 
