@@ -39,6 +39,12 @@ Continuous integration actions are not available.
 
 """
 
+JOB_STALL_MESSAGE = """:question: The {joblist} job(s) have stalled on Jenkins, as there has been no result for 1 hour.
+
+The tests may now be triggered again.
+
+"""
+
 try: #python3
     from urllib.request import urlopen
 except: #python2
@@ -480,7 +486,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     # - set the current status for this commit SHA
     # - apply labels according to the state of the latest commit of the PR
     # - make a comment if required
-
+    jobs_have_stalled = False
     for test, state in test_statuses.items():
         labels.append('%s %s' % (test, state))
 
@@ -523,6 +529,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                             description="The job has stalled on Jenkins. It can be re-triggered.",
                             context=test_suites.get_test_alias(test)
                         )
+            jobs_have_stalled = True
 
         elif state == 'pending' and not test_triggered[test] and not test_status_exists[test]:
             print (test_status_exists)
@@ -599,6 +606,9 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         if not dryRun:
             issue.create_comment(TESTS_ALREADY_TRIGGERED.format(
                 commit_link=commitlink,
-                triggered_tests=', '.join(tests_already_triggered))
-
-)
+                triggered_tests=', '.join(tests_already_triggered)))
+    
+    if jobs_have_stalled and not dryRun:
+        issue.create_comment(
+            JOB_STALL_MESSAGE.format(joblist='')
+        )
