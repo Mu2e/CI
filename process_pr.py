@@ -387,7 +387,9 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             if (datetime.utcnow() - stat.updated_at).total_seconds() > test_suites.get_stall_time(name):
                 test_triggered[name] = False # the test may be triggered again.
                 test_statuses[name] = 'stalled'
-
+                test_status_exists[name] = False
+        if 'stalled' in stat.description:
+            test_statuses[name] = 'stalled'
 
         if (stat.context == 'mu2e/buildtest' and stat.description.startswith(':')):
             # this is the commit SHA in master that we merged into
@@ -513,6 +515,14 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             print ("Git status created for SHA %s test %s - since the test has been triggered." % (git_commit.sha, test))
         elif state == 'pending' and test_status_exists[test]:
             print ("Git status unchanged for SHA %s test %s - the existing one is up-to-date." % (git_commit.sha, test))
+        elif state == 'stalled' and not test_status_exists[test]:
+            print ("Git status was pending, but the job has stalled.")
+            last_commit.create_status(
+                            state="error",
+                            target_url="https://github.com/mu2e/Offline",
+                            description="The job has stalled on Jenkins. It can be re-triggered.",
+                            context=test_suites.get_test_alias(test)
+                        )
 
         elif state == 'pending' and not test_triggered[test] and not test_status_exists[test]:
             print (test_status_exists)
