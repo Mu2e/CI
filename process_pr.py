@@ -368,6 +368,21 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         name = test_suites.get_test_name(stat.context)
         if name == 'unrecognised':
             continue
+        
+        if ('buildtest' in stat.context and stat.description.startswith(':')):
+            if 'buildtest::' in commit_status_time and commit_status_time['buildtest::'] > stat.updated_at:
+                continue
+            commit_status_time['buildtest::'] = stat.updated_at
+            # this is the commit SHA in master that we used in the last build test
+            master_commit_sha_last_test = stat.description.replace(':','')
+            
+            if not master_commit_sha_last_test.trim() == master_commit_sha.trim():
+                print ("HEAD of base branch is now different to last tested base branch commit")
+                test_triggered[name] = False
+                test_statuses[name] = 'pending'
+                test_status_exists[name] = False
+                base_branch_HEAD_changed = True
+
         if name in commit_status_time and commit_status_time[name] > stat.updated_at:
             continue
 
@@ -397,18 +412,6 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 test_status_exists[name] = False
         if 'stalled' in stat.description:
             test_statuses[name] = 'stalled'
-
-        if (stat.context == 'mu2e/buildtest' and stat.description.startswith(':')):
-            # this is the commit SHA in master that we used in the last build test
-            master_commit_sha_last_test = stat.description.replace(':','')
-            
-            if not master_commit_sha_last_test.trim() == master_commit_sha.trim():
-                print ("HEAD of base branch is now different to last tested base branch commit")
-                test_triggered[name] = False
-                test_statuses[name] = 'pending'
-                test_status_exists[name] = False
-                base_branch_HEAD_changed = True
-
 
     # now process PR comments that come after when
     # the bot last did something, first figuring out when the bot last commented
