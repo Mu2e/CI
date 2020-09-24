@@ -380,9 +380,6 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             
             if not master_commit_sha_last_test.strip() == master_commit_sha.strip():
                 print ("HEAD of base branch is now different to last tested base branch commit")
-                test_triggered[name] = False
-                test_statuses[name] = 'pending'
-                test_status_exists[name] = False
                 base_branch_HEAD_changed = True
 
         if name in commit_status_time and commit_status_time[name] > stat.updated_at:
@@ -415,6 +412,16 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         if 'stalled' in stat.description:
             test_statuses[name] = 'stalled'
 
+    if 'build' in test_statuses and not test_statuses['build'] == 'pending':
+        print("The base branch HEAD has changed. We need to reset the status of the build test and notify.")
+         test_triggered[name] = False
+         test_statuses[name] = 'pending'
+         test_status_exists[name] = False
+    else:
+        print("The build test status is not present or has already been reset. We will not notify about the changed HEAD.")
+        base_branch_HEAD_changed = False
+
+    
     # now process PR comments that come after when
     # the bot last did something, first figuring out when the bot last commented
     pr_author = issue.user.login
