@@ -33,7 +33,7 @@ TESTS_TRIGGERED_CONFIRMATION = """:hourglass: The following tests have been trig
 
 TESTS_ALREADY_TRIGGERED = """:x: Those tests have already run or are running for {commit_link} ({triggered_tests})"""
 
-PR_AUTHOR_NONMEMBER = """:x: The author of this pull request is not a member of the Mu2e organisation!
+PR_AUTHOR_NONMEMBER = """:warning: The author of this pull request is not a member of the Mu2e organisation!
 
 Continuous integration actions are not available. 
 
@@ -362,6 +362,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     }
 
     commit_status_time = {}
+    base_branch_HEAD_changed = False
 
     for stat in commit_status:
         name = test_suites.get_test_name(stat.context)
@@ -398,10 +399,15 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             test_statuses[name] = 'stalled'
 
         if (stat.context == 'mu2e/buildtest' and stat.description.startswith(':')):
-            # this is the commit SHA in master that we merged into
-            # this is important if we want to trigger a validation job
-            master_commit_sha = stat.description.replace(':','')
-
+            # this is the commit SHA in master that we used in the last build test
+            master_commit_sha_last_test = stat.description.replace(':','')
+            
+            if not master_commit_sha_last_test.trim() = master_commit_sha.trim():
+                print ("HEAD of base branch is now different to last tested base branch commit")
+                test_triggered[name] = False
+                test_statuses[name] = 'pending'
+                test_status_exists[name] = False
+                base_branch_HEAD_changed = True
 
 
     # now process PR comments that come after when
@@ -612,3 +618,11 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         issue.create_comment(
             JOB_STALL_MESSAGE.format(joblist='')
         )
+    if base_branch_HEAD_changed and not dryRun:
+        issue.create_comment(
+            ":memo: The HEAD of `{base_ref}` has changed to {base_sha}. Tests are now out of date.".format(
+                base_ref=pr.base.ref,
+                base_sha=pr.base.sha
+            )
+        )
+    
