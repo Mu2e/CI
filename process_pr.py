@@ -230,6 +230,9 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         print("Ignoring: PR with no files changed")
         return
     
+    if pr.state == 'closed':
+        print("Ignoring: PR in closed state")
+    
     mu2eorg = gh.get_organization("Mu2e")
     
     if not mu2eorg.has_in_members(issue.user):
