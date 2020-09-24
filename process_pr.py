@@ -376,7 +376,9 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             # this is the commit SHA in master that we used in the last build test
             master_commit_sha_last_test = stat.description.replace(':','')
             
-            if not master_commit_sha_last_test.trim() == master_commit_sha.trim():
+            print ("Last build test was run at base sha: %r, current HEAD is %r" % (master_commit_sha_last_test, master_commit_sha))
+            
+            if not master_commit_sha_last_test.strip() == master_commit_sha.strip():
                 print ("HEAD of base branch is now different to last tested base branch commit")
                 test_triggered[name] = False
                 test_statuses[name] = 'pending'
