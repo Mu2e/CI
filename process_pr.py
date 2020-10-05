@@ -232,6 +232,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     
     if pr.state == 'closed':
         print("Ignoring: PR in closed state")
+        return
     
     mu2eorg = gh.get_organization("Mu2e")
     
