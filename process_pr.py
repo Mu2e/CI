@@ -502,7 +502,14 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             # "React" to the comment to let the user know we have acknowledged their comment!
             comment.create_reaction(reaction_t)
 
-
+    # trigger the 'default' tests if this is the first time we've seen this PR:
+    if not_seen_yet and not dryRun and test_suites.AUTO_TRIGGER_ON_OPEN:
+        for test in test_requirements:
+            test_statuses[test] = 'pending'
+            test_triggered[test] = True
+            tests_to_trigger.append(test)
+        tests_to_trigger = set(tests_to_trigger)
+    
     # now,
     # - trigger tests if indicated (for this specific SHA.)
     # - set the current status for this commit SHA
