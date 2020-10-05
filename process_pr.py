@@ -232,6 +232,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     
     if pr.state == 'closed':
         print("Ignoring: PR in closed state")
+        return
     
     mu2eorg = gh.get_organization("Mu2e")
     
@@ -633,7 +634,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         issue.create_comment(
             JOB_STALL_MESSAGE.format(joblist='')
         )
-    if base_branch_HEAD_changed and not dryRun:
+    if base_branch_HEAD_changed and not dryRun and not len(tests_to_trigger) > 0:
         issue.create_comment(
             ":memo: The HEAD of `{base_ref}` has changed to {base_sha}. Tests are now out of date.".format(
                 base_ref=pr.base.ref,
