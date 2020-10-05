@@ -51,6 +51,8 @@ regex_mentioned = re.compile(TEST_MENTIONED, re.I | re.M)
 SUPPORTED_TESTS = ['build', 'code checks', 'validation']
 DEFAULT_TESTS = ['build']
 
+# Whether to trigger the tests in DEFAULT_TESTS when a PR is opened
+AUTO_TRIGGER_ON_OPEN = True 
 
 TEST_ALIASES = {
     'build': ['mu2e/buildtest'],
