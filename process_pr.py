@@ -626,7 +626,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 tests_triggered_msg=tests_triggered_msg,
                 base_branch=pr.base.ref
             ))
-    elif base_branch_HEAD_changed and not dryRun and not len(tests_to_trigger) > 0:
+    elif base_branch_HEAD_changed and not dryRun:
         issue.create_comment(
             """:memo: The HEAD of `{base_ref}` has changed to {base_sha}. Tests are now out of date.
 
