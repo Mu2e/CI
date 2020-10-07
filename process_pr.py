@@ -503,7 +503,8 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             comment.create_reaction(reaction_t)
 
     # trigger the 'default' tests if this is the first time we've seen this PR:
-    if not_seen_yet and not dryRun and test_suites.AUTO_TRIGGER_ON_OPEN:
+    # re-trigger a build if the HEAD changed.        
+    if (not_seen_yet or base_branch_HEAD_changed) and not dryRun and test_suites.AUTO_TRIGGER_ON_OPEN:
         for test in test_requirements:
             test_statuses[test] = 'pending'
             test_triggered[test] = True
@@ -611,7 +612,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             build_queue_str=get_build_queue_size()
         )
 
-
+    
     # decide if we should issue a comment, and what comment to issue
     if not_seen_yet:
         print ("First time seeing this PR - send the user a salutation!")
@@ -625,7 +626,17 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 tests_triggered_msg=tests_triggered_msg,
                 base_branch=pr.base.ref
             ))
+    elif base_branch_HEAD_changed and not dryRun and not len(tests_to_trigger) > 0:
+        issue.create_comment(
+            """:memo: The HEAD of `{base_ref}` has changed to {base_sha}. Tests are now out of date.
 
+{test_triggered_msg}
+""".format(
+                base_ref=pr.base.ref,
+                base_sha=master_commit_sha,
+                test_triggered_msg=tests_triggered_msg
+            )
+        )
     elif len(tests_to_trigger) > 0:
         # tests were triggered, let people know about it
         if not dryRun:
@@ -641,11 +652,5 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         issue.create_comment(
             JOB_STALL_MESSAGE.format(joblist='')
         )
-    if base_branch_HEAD_changed and not dryRun and not len(tests_to_trigger) > 0:
-        issue.create_comment(
-            ":memo: The HEAD of `{base_ref}` has changed to {base_sha}. Tests are now out of date.".format(
-                base_ref=pr.base.ref,
-                base_sha=master_commit_sha
-            )
-        )
+
     
