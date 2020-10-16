@@ -475,7 +475,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
 
             for test in tests:
                 # check that the test has been triggered on this commit first
-                if test in test_triggered and test_triggered[test] and test in test_statuses and not test_statuses[test].strip() in ['failure', 'error']:
+                if test in test_triggered and test_triggered[test] and test in test_statuses and not test_statuses[test].strip() in ['failed', 'error']:
                         print ('Current test status: %r' % test_statuses[test])
                         print ("The test has already been triggered for this ref. It will not be triggered again.")
                         tests_already_triggered.append(test)
