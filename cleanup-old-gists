@@ -26,23 +26,21 @@ r = requests.get('https://api.github.com/gists',
 
 response_json = r.json()
 
-marked = []
-
-print (response_json)
 for gist in response_json:
+    if 'id' not in gist:
+        print(response_json)
+        print ("Couldn't find an id field. Assume the API request failed - exit.")
+        sys.exit(1)
+    
     time_created = dateutil.parser.isoparse(gist['created_at'])
-
-    tz = time_created.tzinfo
-
     id = gist['id']
-
-    age_days = (datetime.now(tz) - time_created).total_seconds() / 86400.0
+    age_days = (datetime.now(time_created.tzinfo) - time_created).total_seconds() / 86400.0
 
     if age_days > 30:
         print (f"Gist {id} is {age_days} days old - will delete.")
-        marked.append(id)
 
-for id in marked:
-    r = requests.delete(f'https://api.github.com/gists/{id}', 
-              headers = headers)
-    print (f'Deleted {id}.')
+        r = requests.delete(f'https://api.github.com/gists/{id}', 
+                  headers = headers)
+        print (f'Deleted {id}.')
+
+
