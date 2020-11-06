@@ -30,7 +30,6 @@ marked = []
 
 print (response_json)
 for gist in response_json:
-    print (gist)
     time_created = dateutil.parser.isoparse(gist['created_at'])
 
     tz = time_created.tzinfo
