@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+"""
+Delete uploaded logfiles from Gist that are older than 30 days.
+
+"""
+
+from os.path import expanduser, dirname, abspath, join, exists
+from sys import exit
+import re, sys, os
+from socket import setdefaulttimeout
+setdefaulttimeout(120)
+
+import json
+import requests
+from datetime import datetime
+import dateutil.parser
+
+# https://docs.github.com/en/rest/reference/gists
+headers = {'Accept': 'application/vnd.github.v3+json',
+          'Authorization': 'token %s' % os.environ['GITHUBTOKEN']
+}
+
+r = requests.get('https://api.github.com/gists', 
+              headers = headers)
+
+
+response_json = r.json()
+
+marked = []
+
+print (response_json)
+for gist in response_json:
+    print (gist)
+    time_created = dateutil.parser.isoparse(gist['created_at'])
+
+    tz = time_created.tzinfo
+
+    id = gist['id']
+
+    age_days = (datetime.now(tz) - time_created).total_seconds() / 86400.0
+
+    if age_days > 30:
+        print (f"Gist {id} is {age_days} days old - will delete.")
+        marked.append(id)
+
+for id in marked:
+    r = requests.delete(f'https://api.github.com/gists/{id}', 
+              headers = headers)
+    print (f'Deleted {id}.')
