@@ -245,7 +245,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
 
     authorised_users, authed_teams = get_authorised_users(mu2eorg, repo, branch=pr.base.ref)
 
-    # allow the PR author to execute CI actions and tests:
+    # allow the PR author to execute CI actions and tests manually:
     authorised_users.add(issue.user.login)
 
     print ("Authorised Users: ", authorised_users)
