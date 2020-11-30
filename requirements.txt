@@ -2,7 +2,7 @@ certifi==2020.6.20
 chardet==3.0.4
 Deprecated==1.2.10
 idna==2.10
-PyGithub==1.53
+PyGithub==1.54
 PyJWT==1.7.1
 PyYAML==5.3.1
 requests==2.24.0
