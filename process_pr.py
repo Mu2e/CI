@@ -655,7 +655,8 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 base_sha=master_commit_sha
             )
         )
-    if future_commit and not dryRun:
-        issue.create_comment(
-            f":memo: The latest commit by @{git_commit.committer.name} is timestamped {future_commit_timedelta_string} in the future. Please check that the date and time is set correctly when creating new commits."
-        )
+    if 'build' in test_status_exists:
+        if future_commit and not test_status_exists['build'] and not dryRun:
+            issue.create_comment(
+                f":memo: The latest commit by @{git_commit.committer.name} is timestamped {future_commit_timedelta_string} in the future. Please check that the date and time is set correctly when creating new commits."
+            )
