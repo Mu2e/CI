@@ -216,7 +216,10 @@ def get_authorised_users(mu2eorg, repo, branch='all'):
     return set(authed_users), authed_teams
 
 
-def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=False):
+def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=False, child_call=0):
+    if child_call > 2:
+        print("Stopping recursion")
+        return
     api_rate_limits(gh)
 
     if not issue.pull_request:
@@ -229,6 +232,27 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     if pr.changed_files == 0:
         print("Ignoring: PR with no files changed")
         return
+    
+    # GitHub should send a pull_request webhook to Jenkins if the PR is merged.
+    if pr.merged:
+        # check that this PR was merged recently before proceeding
+        # process_pr is triggered on all other open PRs
+        # unless this PR was merged more than two minutes ago
+        
+        # Note: If the Jenkins queue is inundated, then it's likely this won't
+        # work at the time. But, this is not likely to be more than just an intermittent problem.
+        # This allows for a 2 minute lag.
+        if (datetime.utcnow() - pr.merged_at).seconds < 120:
+            # Let people know on other PRs that (since this one was merged) the 
+            # base ref HEAD will have changed
+            print("Triggering check on all other open PRs as this PR was merged within the last 2 minutes.")
+            pulls_to_check = repo.get_pulls(state='open', base=pr.base.ref)
+            for pr_ in pulls_to_check:
+                # Call process_pr within process_pr, while incrementing child_call as a
+                # precautionary measure to avoid runaway recursion (for whatever reason) 
+                # although I don't forsee that ever happening
+                process_pr(repo_config, gh, repo, pr_.as_issue(), dryRun,
+                           cmsbuild_user=cmsbuild_user, force=force, child_call=child_call+1)
     
     if pr.state == 'closed':
         print("Ignoring: PR in closed state")
