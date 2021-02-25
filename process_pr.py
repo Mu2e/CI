@@ -242,7 +242,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         # Note: If the Jenkins queue is inundated, then it's likely this won't
         # work at the time. But, this is not likely to be more than just an intermittent problem.
         # This allows for a 2 minute lag.
-        if (datetime.now() - pr.merged_at).seconds < 120:
+        if (datetime.utcnow() - pr.merged_at).seconds < 120:
             # Let people know on other PRs that (since this one was merged) the 
             # base ref HEAD will have changed
             print("Triggering check on all other open PRs as this PR was merged within the last 2 minutes.")
