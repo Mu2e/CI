@@ -337,6 +337,8 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     print("PR update time", pr.updated_at)
     print("Time UTC:", datetime.utcnow())
 
+    future_commit = False
+    future_commit_timedelta_string = None
     if last_commit_date > datetime.utcnow():
         print("==== Future commit found ====")
         if (not dryRun) and repo_config.ADD_LABELS:
@@ -344,7 +346,8 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             if not "future commit" in labels:
                 labels.append("future commit")
                 issue.edit(labels=labels)
-        return
+        future_commit = True
+        future_commit_timedelta_string = str(last_commit_date - datetime.utcnow()) + " (hh:mm:ss)"
 
     # now get commit statuses
     # this is how we figure out the current state of tests
@@ -652,4 +655,8 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 base_sha=master_commit_sha
             )
         )
-    
+    if 'build' in test_status_exists:
+        if future_commit and not test_status_exists['build'] and not dryRun:
+            issue.create_comment(
+                f":memo: The latest commit by @{git_commit.committer.name} is timestamped {future_commit_timedelta_string} in the future. Please check that the date and time is set correctly when creating new commits."
+            )
