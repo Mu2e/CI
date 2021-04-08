@@ -5,7 +5,7 @@ idna==2.10
 PyGithub==1.53
 PyJWT==1.7.1
 PyYAML==5.3.1
-requests==2.24.0
+requests==2.25.1
 urllib3==1.25.10
 wrapt==1.12.1
 python-dateutil==2.8.1
