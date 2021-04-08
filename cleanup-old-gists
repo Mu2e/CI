@@ -24,7 +24,15 @@ r = requests.get('https://api.github.com/gists',
 
 response_json = r.json()
 
+# only delete this many gists per-run of this script
+gist_delete_limit = 5
+
+
+gists_deleted = 0
 for gist in response_json:
+    if gists_deleted > gist_delete_limit:
+        print('gist_delete_limit reached - exit for now.')
+        sys.exit(0)
     if 'id' not in gist:
         print(response_json)
         print ("Couldn't find an id field. Assume the API request failed - exit.")
@@ -40,5 +48,6 @@ for gist in response_json:
         r = requests.delete(f'https://api.github.com/gists/{id}', 
                   headers = headers)
         print (f'Deleted {id}.')
+        gists_deleted += 1
 
 
