@@ -4,7 +4,7 @@ Delete uploaded logfiles from Gist that are older than 30 days.
 
 """
 
-import sys
+import os, sys
 from socket import setdefaulttimeout
 setdefaulttimeout(120)
 
