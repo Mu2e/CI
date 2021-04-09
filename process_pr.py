@@ -23,6 +23,9 @@ which require these tests: {tests_required}.
 {auth_teams} have access to CI actions on [{base_branch}](/Mu2e/Offline/tree/{base_branch}).
 
 {watchers}
+
+{non_member_msg}
+
 {tests_triggered_msg}
 
 [About FNALbuild.](https://mu2ewiki.fnal.gov/wiki/Git#GitHub_Pull_Request_Procedures_and_FNALbuild) [Code review on Mu2e/Offline.](https://mu2ewiki.fnal.gov/wiki/GitHubWorkflow#Code_Review)
@@ -33,11 +36,7 @@ TESTS_TRIGGERED_CONFIRMATION = """:hourglass: The following tests have been trig
 
 TESTS_ALREADY_TRIGGERED = """:x: Those tests have already run or are running for {commit_link} ({triggered_tests})"""
 
-PR_AUTHOR_NONMEMBER = """:warning: The author of this pull request is not a member of the Mu2e organisation!
-
-Continuous integration actions are not available. 
-
-"""
+PR_AUTHOR_NONMEMBER = """:memo: The author of this pull request is not a member of the [Mu2e github organisation](https://github.com/Mu2e)."""
 
 JOB_STALL_MESSAGE = """:question: The {joblist} job(s) have stalled on Jenkins, as there has been no result for 1 hour.
 
@@ -259,18 +258,20 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         return
     
     mu2eorg = gh.get_organization("Mu2e")
-    
-    if not mu2eorg.has_in_members(issue.user):
-        print ('Ignoring: PR not from an organisation member')
-        if not 'CI unavailable' in [x.name for x in issue.labels]:
-            issue.create_comment(PR_AUTHOR_NONMEMBER)
-            issue.edit(labels=['CI unavailable'])
-        return
+    trusted_user = mu2eorg.has_in_members(issue.user)
+
+    # if not trusted_user:
+    #     print ('Ignoring: PR not from an organisation member')
+    #     if not 'CI unavailable' in [x.name for x in issue.labels]:
+    #         issue.create_comment(PR_AUTHOR_NONMEMBER)
+    #         issue.edit(labels=['CI unavailable'])
+    #     return
 
     authorised_users, authed_teams = get_authorised_users(mu2eorg, repo, branch=pr.base.ref)
 
     # allow the PR author to execute CI actions:
-    authorised_users.add(issue.user.login)
+    if trusted_user:
+        authorised_users.add(issue.user.login)
 
     print ("Authorised Users: ", authorised_users)
     
@@ -505,7 +506,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                         print ('Current test status: %r' % test_statuses[test])
                         print ("The test has already been triggered for this ref. It will not be triggered again.")
                         tests_already_triggered.append(test)
-                        reaction_t = '-1'
+                        reaction_t = 'confused'
                         continue
                 else:
                     test_triggered[test] = False
@@ -530,12 +531,14 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             comment.create_reaction(reaction_t)
 
     # trigger the 'default' tests if this is the first time we've seen this PR:
-    if not_seen_yet and not dryRun and test_suites.AUTO_TRIGGER_ON_OPEN:
-        for test in test_requirements:
-            test_statuses[test] = 'pending'
-            test_triggered[test] = True
-            tests_to_trigger.append(test)
-        tests_to_trigger = set(tests_to_trigger)
+    # (but, only if they are in the Mu2e org)
+    if trusted_user:
+        if not_seen_yet and not dryRun and test_suites.AUTO_TRIGGER_ON_OPEN:
+            for test in test_requirements:
+                test_statuses[test] = 'pending'
+                test_triggered[test] = True
+                tests_to_trigger.append(test)
+            tests_to_trigger = set(tests_to_trigger)
     
     # now,
     # - trigger tests if indicated (for this specific SHA.)
@@ -650,6 +653,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 watchers=watcher_text,
                 auth_teams=', '.join(['@Mu2e/%s' % team for team in authed_teams]),
                 tests_triggered_msg=tests_triggered_msg,
+                non_member_msg='' if trusted_user else PR_AUTHOR_NONMEMBER,
                 base_branch=pr.base.ref
             ))
 
