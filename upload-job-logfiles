@@ -36,7 +36,7 @@ for filename in sys.argv[1:]:
 
 fmt = (REPOSITORY, PR_NUMBER, PR_REV, MASTER_REV)
 
-gh = Github(login_or_token=environ['GITHUBTOKEN'], retry=3)
+gh = Github(login_or_token=os.environ['GITHUBTOKEN'], retry=3)
 gh_auth_user = gh.get_user()
 gist = gh_auth_user.create_gist(public=False, files=files_to_upload, description="%s CI artifacts for Mu2e/Offline PR #%s. PR commit %s tested with base branch commit %s." % fmt)
 
