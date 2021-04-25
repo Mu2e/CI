@@ -9,8 +9,7 @@ import re, sys, os
 from socket import setdefaulttimeout
 setdefaulttimeout(120)
 
-import json
-import requests
+from github import Github, InputFileContent
 
 def prepare_file(filename):
   contents_text=''
@@ -33,31 +32,14 @@ MASTER_REV = os.environ['MASTER_COMMIT_SHA']
 files_to_upload = {}
 for filename in sys.argv[1:]:
   gist_fn, content = prepare_file(filename)
-  files_to_upload[gist_fn] = {'content': content}
+  files_to_upload[gist_fn] = InputFileContent(content) # {'content': content}
 
 fmt = (REPOSITORY, PR_NUMBER, PR_REV, MASTER_REV)
 
-# https://docs.github.com/en/rest/reference/gists#create-a-gist
-headers = {'Accept': 'application/vnd.github.v3+json',
-          'Authorization': 'token %s' % os.environ['GITHUBTOKEN']
-}
-
-data = {
-  'description': '%s CI artefacts for PR #%s. PR revision %s was merged at master revision %s.' % fmt,
-  'files': files_to_upload,
-  'public': False
-}
-
-r = requests.post('https://api.github.com/gists', 
-              headers = headers,
-              data = json.dumps(data))
-
-response_json = r.json()
-
+gh = Github(login_or_token=environ['GITHUBTOKEN'], retry=3)
+gh_auth_user = gh.get_user()
+gist = gh_auth_user.create_gist(public=False, files=files_to_upload, description="%s CI artifacts for Mu2e/Offline PR #%s. PR commit %s tested with base branch commit %s." % fmt)
 
 # print gist link
-if 'html_url' in response_json:
-  print (response_json['html_url'])
-else:
-  print(response_json, file=sys.stderr)
-  sys.exit(1)
+print (gist.url)
+
