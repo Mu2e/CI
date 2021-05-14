@@ -457,7 +457,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         print("Checking if %s has stalled..." % name)
         print("Status is %s" % test_statuses[name])
         if (test_statuses[name] in ['running', 'pending']) and (name in test_triggered) and test_triggered[name]:
-            test_runtime = (datetime.utcnow() - stat.updated_at).total_seconds()
+            test_runtime = (datetime.utcnow() - commit_status_time[name]).total_seconds()
             print("  Has been running for %d seconds" % test_runtime)
             if test_runtime > test_suites.get_stall_time(name):
                 print("  The test has stalled.")
