@@ -433,13 +433,6 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         # doesn't support these states)
         if ('running' in stat.description):
             test_statuses[name] = 'running'
-
-        # check if we've stalled
-        if (test_statuses[name] in ['running', 'pending']) and (name in test_triggered) and test_triggered[name]:
-            if (datetime.utcnow() - stat.updated_at).total_seconds() > test_suites.get_stall_time(name):
-                test_triggered[name] = False # the test may be triggered again.
-                test_statuses[name] = 'stalled'
-                test_status_exists[name] = False
         if 'stalled' in stat.description:
             test_statuses[name] = 'stalled'
 
@@ -452,6 +445,14 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         print("The build test status is not present or has already been reset. We will not notify about the changed HEAD.")
         base_branch_HEAD_changed = False
 
+    # check if we've stalled
+    tests_ = test_statuses.keys()
+    for name in tests_:
+        if (test_statuses[name] in ['running', 'pending']) and (name in test_triggered) and test_triggered[name]:
+            if (datetime.utcnow() - stat.updated_at).total_seconds() > test_suites.get_stall_time(name):
+                test_triggered[name] = False # the test may be triggered again.
+                test_statuses[name] = 'stalled'
+                test_status_exists[name] = False
     
     # now process PR comments that come after when
     # the bot last did something, first figuring out when the bot last commented
