@@ -448,12 +448,17 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     # check if we've stalled
     tests_ = test_statuses.keys()
     for name in tests_:
+        print("Checking if %s has stalled..." % name)
         if (test_statuses[name] in ['running', 'pending']) and (name in test_triggered) and test_triggered[name]:
-            if (datetime.utcnow() - stat.updated_at).total_seconds() > test_suites.get_stall_time(name):
+            test_runtime = (datetime.utcnow() - stat.updated_at).total_seconds()
+            print("  Has been running for %d seconds" % test_runtime)
+            if test_runtime > test_suites.get_stall_time(name):
+                print("  The test has stalled.")
                 test_triggered[name] = False # the test may be triggered again.
                 test_statuses[name] = 'stalled'
                 test_status_exists[name] = False
-    
+            else:
+                print("  The test has not stalled yet...")
     # now process PR comments that come after when
     # the bot last did something, first figuring out when the bot last commented
     pr_author = issue.user.login
