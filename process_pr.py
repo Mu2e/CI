@@ -40,6 +40,8 @@ PR_AUTHOR_NONMEMBER = """:memo: The author of this pull request is not a member 
 
 JOB_STALL_MESSAGE = """:question: The {joblist} job(s) have stalled on Jenkins, as there has been no result for 1 hour.
 
+{info}
+
 The tests may now be triggered again.
 
 """
@@ -393,7 +395,9 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     }
 
     commit_status_time = {}
+    test_urls = {}
     base_branch_HEAD_changed = False
+    stalled_job_info = ''
 
     for stat in commit_status:
         name = test_suites.get_test_name(stat.context)
@@ -433,6 +437,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         # doesn't support these states)
         if ('running' in stat.description):
             test_statuses[name] = 'running'
+            test_urls[name] = str(stat.target_url)
         if 'stalled' in stat.description:
             test_statuses[name] = 'stalled'
 
@@ -447,6 +452,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
 
     # check if we've stalled
     tests_ = test_statuses.keys()
+    stalled_jobs = []
     for name in tests_:
         print("Checking if %s has stalled..." % name)
         print("Status is %s" % test_statuses[name])
@@ -458,6 +464,9 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 test_triggered[name] = False # the test may be triggered again.
                 test_statuses[name] = 'stalled'
                 test_status_exists[name] = False
+                stalled_jobs += [name]
+                if name in test_urls:
+                    stalled_job_info += '\n- %s ([more info](%s))' % (name, test_urls[name])
             else:
                 print("  The test has not stalled yet...")
     # now process PR comments that come after when
@@ -677,7 +686,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     
     if jobs_have_stalled and not dryRun:
         issue.create_comment(
-            JOB_STALL_MESSAGE.format(joblist='')
+            JOB_STALL_MESSAGE.format(joblist=', '.join(stalled_jobs), info=stalled_job_info)
         )
     if base_branch_HEAD_changed and not dryRun and not len(tests_to_trigger) > 0:
         issue.create_comment(
