@@ -411,8 +411,9 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         name = test_suites.get_test_name(stat.context)
         if name == 'unrecognised':
             continue
-        
+        print(f"Processing commit status: {stat.context}")
         if 'buildtest/last' in stat.context:
+            print ("Check if this is when we last triggered the test.")
             name = 'buildtest/last'
             if name in commit_status_time and commit_status_time[name] > stat.updated_at:
                 continue
@@ -482,7 +483,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             else:
                 print("  The test has not stalled yet...")
     if 'build' in legit_tests and master_commit_sha_last_test is None:
-        if 'build' in test_statuses and test_statuses['build'] != 'pending':
+        if 'build' in test_statuses and test_statuses['build'] in ['success', 'error', 'failure']:
             test_triggered['build'] = False
             test_statuses['build'] = 'pending'
             test_status_exists['build'] = False
