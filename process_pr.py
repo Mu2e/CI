@@ -216,6 +216,12 @@ def get_authorised_users(mu2eorg, repo, branch='all'):
     # users authorised to communicate with this bot
     return set(authed_users), authed_teams
 
+def post_on_pr(issue, comment, previous_bot_comments):
+    if comment in previous_bot_comments:
+        print("SPAM PROTECTION - We are posting something we already posted before! Something is wrong!")
+        return
+    issue.create_comment(comment)
+
 
 def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=False, child_call=0):
     if child_call > 2:
@@ -397,25 +403,29 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     commit_status_time = {}
     test_urls = {}
     base_branch_HEAD_changed = False
+    master_commit_sha_last_test = None
     stalled_job_info = ''
+    legit_tests = set()
 
     for stat in commit_status:
         name = test_suites.get_test_name(stat.context)
         if name == 'unrecognised':
             continue
         
-        if ('buildtest' in stat.context and stat.description.startswith(':')):
-            if 'buildtest::' in commit_status_time and commit_status_time['buildtest::'] > stat.updated_at:
+        if 'buildtest/last' in stat.context:
+            name = 'buildtest/last'
+            if name in commit_status_time and commit_status_time[name] > stat.updated_at:
                 continue
-            commit_status_time['buildtest::'] = stat.updated_at
+            commit_status_time[name] = stat.updated_at
             # this is the commit SHA in master that we used in the last build test
-            master_commit_sha_last_test = stat.description.replace(':','')
+            master_commit_sha_last_test = stat.description.replace('Last test triggered against ','')
             
             print ("Last build test was run at base sha: %r, current HEAD is %r" % (master_commit_sha_last_test, master_commit_sha))
             
-            if not master_commit_sha_last_test.strip() == master_commit_sha.strip():
+            if not master_commit_sha.strip().startswith(master_commit_sha_last_test.strip()):
                 print ("HEAD of base branch is now different to last tested base branch commit")
                 base_branch_HEAD_changed = True
+            continue
 
         if name in commit_status_time and commit_status_time[name] > stat.updated_at:
             continue
@@ -426,7 +436,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         test_statuses[name] = stat.state
         if stat.state in state_labels:
             test_statuses[name] = state_labels[stat.state]
-
+        legit_tests.add(name)
         test_status_exists[name] = True
         if name in test_triggered and test_triggered[name]: # if already True, don't change it
             continue
@@ -454,6 +464,8 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     tests_ = test_statuses.keys()
     stalled_jobs = []
     for name in tests_:
+        if name not in legit_tests:
+            continue
         print("Checking if %s has stalled..." % name)
         print("Status is %s" % test_statuses[name])
         if (test_statuses[name] in ['running', 'pending']) and (name in test_triggered) and test_triggered[name]:
@@ -469,6 +481,13 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                     stalled_job_info += '\n- %s ([more info](%s))' % (name, test_urls[name])
             else:
                 print("  The test has not stalled yet...")
+    if 'build' in legit_tests and master_commit_sha_last_test is None:
+        if 'build' in test_statuses and test_statuses['build'] != 'pending':
+            test_triggered['build'] = False
+            test_statuses['build'] = 'pending'
+            test_status_exists['build'] = False
+            print("There's no record of when we last triggered the build test, and the status is not pending, so we are resetting the status.")
+
     # now process PR comments that come after when
     # the bot last did something, first figuring out when the bot last commented
     pr_author = issue.user.login
@@ -481,9 +500,14 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 last_time_seen = comment.created_at
                 print (comment.user.login, last_time_seen)
     print ("Last time seen", last_time_seen)
-
+    
+    bot_comments = []  # keep a track of our comments to avoid duplicate messages and spam.
+    
     # now we process comments
     for comment in comments:
+        if comment.user.login == repo_config.CMSBUILD_USER:
+            bot_comments += [comment.body.strip()]
+
         # Ignore all messages which are before last commit.
         if (comment.created_at < last_commit_date):
             print ("IGNORE COMMENT (before last commit)")
@@ -563,7 +587,8 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     # - make a comment if required
     jobs_have_stalled = False
     for test, state in test_statuses.items():
-        labels.append('%s %s' % (test, state))
+        if test in legit_tests:
+            labels.append('%s %s' % (test, state))
 
         if test in tests_to_trigger:
             print ("TEST WILL NOW BE TRIGGERED: %s" % test)
@@ -581,10 +606,10 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                     # that we merge into for the build test (for validation)
                     # this is overlapped with the next, more human readable message
                     last_commit.create_status(
-                            state="pending",
+                            state="success",
                             target_url="https://github.com/mu2e/Offline",
-                            description=":%s" % master_commit_sha,
-                            context=test_suites.get_test_alias(test)
+                            description="Last test triggered against %s" % master_commit_sha[:8],
+                            context="mu2e/buildtest/last"
                     )
 
                 last_commit.create_status(
@@ -622,10 +647,10 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
         # the script handler that handles Jenkins job results will update the commits accordingly
 
     # check if labels have changed
-    labelnames =  [x.name for x in issue.labels]
-    if (set(labelnames) != set(labels)):
+    labelnames =  {x.name for x in issue.labels if 'unrecognised' not in x.name}
+    if (labelnames != set(labels)):
         if not dryRun:
-            issue.edit(labels=labels)
+            issue.edit(labels=list(labels))
         print ("Labels have changed to: ", labels)
 
     # check label colours
@@ -662,7 +687,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     if not_seen_yet:
         print ("First time seeing this PR - send the user a salutation!")
         if not dryRun:
-            issue.create_comment(PR_SALUTATION.format(
+            post_on_pr(issue, PR_SALUTATION.format(
                 pr_author=pr_author,
                 changed_folders='\n'.join(['- %s' % s for s in modified_top_level_folders]),
                 tests_required=', '.join(test_requirements),
@@ -671,32 +696,38 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
                 tests_triggered_msg=tests_triggered_msg,
                 non_member_msg='' if trusted_user else PR_AUTHOR_NONMEMBER,
                 base_branch=pr.base.ref
-            ))
+            ), bot_comments)
 
     elif len(tests_to_trigger) > 0:
         # tests were triggered, let people know about it
         if not dryRun:
-            issue.create_comment(tests_triggered_msg)
+            post_on_pr(issue, tests_triggered_msg, bot_comments)
+            
 
     elif len(tests_to_trigger) == 0 and len(tests_already_triggered) > 0:
         if not dryRun:
-            issue.create_comment(TESTS_ALREADY_TRIGGERED.format(
+            post_on_pr(issue, TESTS_ALREADY_TRIGGERED.format(
                 commit_link=commitlink,
-                triggered_tests=', '.join(tests_already_triggered)))
+                triggered_tests=', '.join(tests_already_triggered)), bot_comments)
     
     if jobs_have_stalled and not dryRun:
-        issue.create_comment(
-            JOB_STALL_MESSAGE.format(joblist=', '.join(stalled_jobs), info=stalled_job_info)
+        post_on_pr(
+            issue,
+            JOB_STALL_MESSAGE.format(joblist=', '.join(stalled_jobs), info=stalled_job_info),
+            bot_comments
         )
     if base_branch_HEAD_changed and not dryRun and not len(tests_to_trigger) > 0:
-        issue.create_comment(
+        post_on_pr(issue,
             ":memo: The HEAD of `{base_ref}` has changed to {base_sha}. Tests are now out of date.".format(
                 base_ref=pr.base.ref,
                 base_sha=master_commit_sha
-            )
+            ),
+            bot_comments
         )
     if 'build' in test_status_exists:
         if future_commit and not test_status_exists['build'] and not dryRun:
-            issue.create_comment(
-                f":memo: The latest commit by @{git_commit.committer.name} is timestamped {future_commit_timedelta_string} in the future. Please check that the date and time is set correctly when creating new commits."
+            post_on_pr(
+                issue,
+                f":memo: The latest commit by @{git_commit.committer.name} is timestamped {future_commit_timedelta_string} in the future. Please check that the date and time is set correctly when creating new commits.",
+                bot_comments
             )
