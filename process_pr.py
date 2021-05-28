@@ -456,9 +456,9 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
 
     if (master_commit_sha_last_test is None or base_branch_HEAD_changed) and 'build' in test_statuses and not test_statuses['build'] == 'pending':
         print("The base branch HEAD has changed or we didn't know the base branch of the last test. We need to reset the status of the build test and notify.")
-        test_triggered[name] = False
-        test_statuses[name] = 'pending'
-        test_status_exists[name] = False
+        test_triggered['build'] = False
+        test_statuses['build'] = 'pending'
+        test_status_exists['build'] = False
     elif base_branch_HEAD_changed:
         print("The build test status is not present or has already been reset. We will not notify about the changed HEAD.")
         base_branch_HEAD_changed = False
