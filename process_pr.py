@@ -424,6 +424,8 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             if not master_commit_sha.strip().startswith(master_commit_sha_last_test.strip()):
                 print ("HEAD of base branch is now different to last tested base branch commit")
                 base_branch_HEAD_changed = True
+            else:
+                print ("HEAD of base branch is a match.")
             continue
         if name == 'unrecognised':
             continue
