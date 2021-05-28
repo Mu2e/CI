@@ -409,8 +409,6 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
 
     for stat in commit_status:
         name = test_suites.get_test_name(stat.context)
-        if name == 'unrecognised':
-            continue
         print(f"Processing commit status: {stat.context}")
         if 'buildtest/last' in stat.context:
             print ("Check if this is when we last triggered the test.")
@@ -426,6 +424,8 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             if not master_commit_sha.strip().startswith(master_commit_sha_last_test.strip()):
                 print ("HEAD of base branch is now different to last tested base branch commit")
                 base_branch_HEAD_changed = True
+            continue
+        if name == 'unrecognised':
             continue
 
         if name in commit_status_time and commit_status_time[name] > stat.updated_at:
