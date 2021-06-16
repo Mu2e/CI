@@ -2,12 +2,11 @@
 """
 Updates the git commit status
 """
-from __future__ import print_function
+import sys
 from github import Github
-from os.path import expanduser, dirname, abspath, join, exists
+from os.path import dirname, abspath
 from optparse import OptionParser
 from sys import exit
-import re, sys
 from socket import setdefaulttimeout
 
 setdefaulttimeout(120)
