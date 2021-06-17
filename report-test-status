@@ -54,7 +54,7 @@ if __name__ == "__main__":
         type="str",
     )
     parser.add_option(
-        "-R",
+        "-c",
         "--commit",
         dest="commit",
         help="Git commit",
