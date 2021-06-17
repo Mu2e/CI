@@ -1,4 +1,4 @@
-PyGithub==1.54.1
+PyGithub==1.55
 PyYAML==5.4.1
 PyJWT<3.0.0
 requests==2.25.1
