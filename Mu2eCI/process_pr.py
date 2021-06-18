@@ -550,7 +550,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
     if labelnames != set(labels):
         if not dryRun:
             issue.edit(labels=list(labels))
-        log.debug("Labels have changed to: ", labels)
+        log.debug("Labels have changed to: %s", ", ".join(labels))
 
     # check label colours
     try:
