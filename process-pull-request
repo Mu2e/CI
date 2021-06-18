@@ -16,13 +16,14 @@ setdefaulttimeout(120)
 parser = argparse.ArgumentParser(
     description="Process a pull request given a repository and PR number."
 )
-parser.add_argument("pr_id", type=int, help="The Pull Request ID.")
 parser.add_argument(
     "repo",
     type=str,
     help="The GitHub repository. Must be in the format e.g. Mu2e/Offline",
     choices=config.main["supported_repos"],
 )
+parser.add_argument("pr_id", type=int, help="The Pull Request ID.")
+
 parser.add_argument(
     "--dry-run",
     type=bool,
