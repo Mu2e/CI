@@ -3,5 +3,6 @@ bot:
 
 supported_repos:
   - Mu2e/Offline
+  - Mu2e/Production
 
 jenkins_server: https://buildmaster.fnal.gov/buildmaster
