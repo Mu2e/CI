@@ -2,6 +2,7 @@
 """
 Updates the git commit status
 """
+
 import sys
 import os
 import argparse
