@@ -18,8 +18,9 @@ setdefaulttimeout(120)
 parser = argparse.ArgumentParser(
     description="Process a pull request given a repository and PR number."
 )
-parser.add_argument("--pullrequest", type=int, help="The Pull Request ID.")
+parser.add_argument("-p", "--pullrequest", type=int, help="The Pull Request ID.")
 parser.add_argument(
+    "-r",
     "--repository",
     type=str,
     help="The GitHub repository. Must be in the format e.g. Mu2e/Offline",
@@ -27,7 +28,11 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--report-file", type=str, help="The report file e.g. gh-report.md", default=""
+    "-R",
+    "--report-file",
+    type=str,
+    help="The report file e.g. gh-report.md",
+    default="",
 )
 
 args = parser.parse_args()
@@ -37,8 +42,10 @@ if __name__ == "__main__":
     gh = Github(login_or_token=os.environ["GITHUBTOKEN"], retry=3)
 
     try:
-        with open(args.report_file, "r") as f:
-            msg = f.read()
+        msg = ""
+        if len(args.report_file) > 0:
+            with open(args.report_file, "r") as f:
+                msg = f.read()
         comment_gh_pr(gh, args.repository, args.pullrequest, msg)
     except Exception:
         log.exception("Failed to add comment")
