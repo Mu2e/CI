@@ -1,5 +1,5 @@
 import re
-import config
+from Mu2eCI import config
 
 MU2E_BOT_USER = config.main["bot"]["username"]  # "FNALbuild"
 
