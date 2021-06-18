@@ -1,3 +1,5 @@
+# flake8: noqa
+
 PR_SALUTATION = """Hi @{pr_author},
 You have proposed changes to files in these packages:
 {changed_folders}
@@ -29,4 +31,7 @@ JOB_STALL_MESSAGE = """:question: The {joblist} job(s) have failed or timed out 
 The tests may now be triggered again.
 
 """
-BASE_BRANCH_HEAD_CHANGED = ":memo: The HEAD of `{base_ref}` has changed to {base_sha}. Tests are now out of date."
+BASE_BRANCH_HEAD_CHANGED = (
+    ":memo: The HEAD of `{base_ref}` has changed to {base_sha}."
+    " Tests are now out of date."
+)

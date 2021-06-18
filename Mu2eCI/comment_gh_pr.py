@@ -1,9 +1,10 @@
-from github import Github
-from process_pr import process_pr
-import repo_config
+from Mu2eCI.process_pr import process_pr
+from Mu2eCI.logger import log
+
+
 def comment_gh_pr(gh, repo, pr, msg):
     repo = gh.get_repo(repo)
-    pr   = repo.get_issue(pr)
+    pr = repo.get_issue(pr)
 
     # This script provides the mechanism that reports on
     # job statuses.
@@ -17,10 +18,14 @@ def comment_gh_pr(gh, repo, pr, msg):
     # line 5: Link to detailed results/information
     # line 6+: The comment to post on the Pull Request, or, if no comment desired, add 'NOCOMMENT'
 
-    lines = msg.split('\n')
-    if len(lines) < 6: # need at least six lines.
+    lines = msg.split("\n")
+    if len(lines) < 6:  # need at least six lines.
         # Post instead the msg, and skip the git status.
-        pr.create_comment("Error: A Jenkins job did not report output in the correct format. The output was as follows:\n%s" % msg)
+        log.error(
+            "Error: A Jenkins job did not report output in the "
+            "correct format. The output was as follows:\n%s",
+            msg,
+        )
         return
 
     test_commit_sha = lines[0]
@@ -30,17 +35,13 @@ def comment_gh_pr(gh, repo, pr, msg):
     details_link = lines[4]
 
     repo.get_commit(sha=test_commit_sha).create_status(
-        state=state,
-        target_url=details_link,
-        description=desc,
-        context=context
+        state=state, target_url=details_link, description=desc, context=context
     )
 
-
-    comment_msg = '\n'.join(lines[5:])
+    comment_msg = "\n".join(lines[5:])
     # some status updates by commenting might not be necessary.
-    if not 'NOCOMMENT' in comment_msg:
+    if "NOCOMMENT" not in comment_msg:
         pr.create_comment(comment_msg)
-    
+
     # update labels
-    process_pr(repo_config, gh, repo, pr, False, cmsbuild_user="FNALbuild")
+    process_pr(gh, repo, pr)

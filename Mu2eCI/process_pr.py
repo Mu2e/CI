@@ -1,21 +1,20 @@
 import re
-import os
-import json
-import yaml
-import test_suites
-import repo_config
-
-from os.path import join, exists
 from datetime import datetime
-from time import sleep, gmtime
-from calendar import timegm
 from socket import setdefaulttimeout
-from urllib.request import urlopen
 
-from github import Github
-
-from logging import log
-from messages import (
+from Mu2eCI import config
+from Mu2eCI import test_suites
+from Mu2eCI.logger import log
+from Mu2eCI.common import (
+    api_rate_limits,
+    post_on_pr,
+    get_modified,
+    get_authorised_users,
+    check_test_cmd_mu2e,
+    create_properties_file_for_test,
+    get_build_queue_size,
+)
+from Mu2eCI.messages import (
     PR_SALUTATION,
     PR_AUTHOR_NONMEMBER,
     TESTS_ALREADY_TRIGGERED,
@@ -27,207 +26,7 @@ from messages import (
 setdefaulttimeout(300)
 
 
-def get_build_queue_size():
-    jenkins_url = "https://buildmaster.fnal.gov/buildmaster/queue/api/json?pretty=true"
-
-    bqsize = "- API unavailable"
-
-    try:
-        contents = json.load(urlopen(jenkins_url))
-        nitems = len(contents["items"])
-        bqsize = "is empty"
-        if nitems > 0:
-            bqsize = "has %d jobs" % nitems
-
-    except:
-        log.error("Issues accessing Jenkins Build Queue API")
-    return bqsize
-
-
-# written by CMS-BOT authors
-def check_rate_limits(rate_limit, rate_limit_max, rate_limiting_resettime, msg=True):
-    doSleep = 0
-    rate_reset_sec = rate_limiting_resettime - timegm(gmtime()) + 5
-    if msg:
-        log.info(
-            "API Rate Limit: %s/%s, Reset in %s sec i.e. at %s",
-            rate_limit,
-            rate_limit_max,
-            rate_reset_sec,
-            datetime.fromtimestamp(rate_limiting_resettime),
-        )
-    if rate_limit < 100:
-        doSleep = rate_reset_sec
-    elif rate_limit < 250:
-        doSleep = 30
-    elif rate_limit < 500:
-        doSleep = 10
-    elif rate_limit < 750:
-        doSleep = 5
-    elif rate_limit < 1000:
-        doSleep = 2
-    elif rate_limit < 1500:
-        doSleep = 1
-    if rate_reset_sec < doSleep:
-        doSleep = rate_reset_sec
-    if doSleep > 0:
-        if msg:
-            log.warning(
-                "Slowing down for %s sec due to api rate limits %s approching zero"
-                % (doSleep, rate_limit)
-            )
-        sleep(doSleep)
-    return
-
-
-# written by CMS-BOT authors
-def api_rate_limits(gh, msg=True):
-    gh.get_rate_limit()
-    check_rate_limits(
-        gh.rate_limiting[0], gh.rate_limiting[1], gh.rate_limiting_resettime, msg
-    )
-
-
-def check_test_cmd_mu2e(full_comment, repository):
-    # we have a suite of regex statements to support triggering all kinds of tests.
-    # each item in this list matches a trigger statement in a github comment
-
-    # each 'trigger event' function should return:
-    # (testnames to run: list, master+branchPR merge result to run them on)
-
-    # tests:
-    # desc: code checks -> mu2e/codechecks (context name) -> [jenkins project name]
-    # desc: integration build tests -> mu2e/buildtest -> [jenkins project name]
-    # desC: physics validation -> mu2e/validation -> [jenkins project name]
-    log.debug(" ====== matching regex to comment ======")
-    try:
-        log.debug(repr(full_comment))
-    except:
-        log.debug("could not print comment...")
-
-    for regex, handler in test_suites.TESTS:
-        # returns the first match in the comment
-        match = regex.search(full_comment)
-        if match is None:
-            log.debug("NOT MATCHED - %s", str(regex.pattern))
-            continue
-        handle = handler(match)
-
-        if handle is None:
-            log.debug(regex.pattern, "MATCHED - BUT NoneType HANDLE RETURNED")
-            continue
-        log.debug(regex.pattern, "MATCHED")
-        return handle, True
-
-    if test_suites.regex_mentioned.search(full_comment) is not None:
-        log.debug("MATCHED - but unrecognised command")
-        return None, True
-    log.debug("NO MATCHES")
-
-    return None, False
-
-
-# Read a yaml file
-def read_repo_file(repo_config, repo_file, default=None):
-    file_path = join(repo_config.CONFIG_DIR, repo_file)
-    contents = default
-    if exists(file_path):
-        contents = yaml.load(open(file_path, "r"), Loader=yaml.FullLoader)
-        if not contents:
-            contents = default
-    return contents
-
-
-def create_properties_file_for_test(
-    test, repository, pr_number, pr_commit_sha, master_commit_sha, dryRun=False
-):
-    parameters = {}
-    if test == "build_and_val":
-        test = "build"
-        parameters["TRIGGER_VALIDATION"] = "1"
-    repo_partsX = repository.replace("/", "-")  # mu2e/Offline ---> mu2e-Offline
-    out_file_name = "trigger-mu2e-%s-%s-%s.properties" % (
-        test.replace(" ", "-"),
-        repo_partsX,
-        pr_number,
-    )
-
-    parameters["TEST_NAME"] = test
-    parameters["REPOSITORY"] = repository
-    parameters["PULL_REQUEST"] = pr_number
-    parameters["COMMIT_SHA"] = pr_commit_sha
-    parameters["MASTER_COMMIT_SHA"] = master_commit_sha
-
-    if dryRun:
-        log.info("Not creating cleanup properties file (dry-run): %s", out_file_name)
-        return
-    log.info("Creating properties file %s", out_file_name)
-
-    with open(out_file_name, "w") as out_file:
-        for k in parameters:
-            out_file.write("%s=%s\n" % (k, parameters[k]))
-
-
-def get_modified(modified_files):
-    modified_top_level_folders = []
-    for f in modified_files:
-        filename, file_extension = os.path.splitext(f.filename)
-        log.debug("Changed file (%s): %s%s", file_extension, filename, file_extension)
-
-        splits = filename.split("/")
-        if len(splits) > 1:
-            modified_top_level_folders.append(splits[0])
-        else:
-            modified_top_level_folders.append("/")
-
-    return set(modified_top_level_folders)
-
-
-def read_repo_file(repo_config, repo_file, default=None):
-    import yaml
-
-    file_path = join(repo_config.CONFIG_DIR, repo_file)
-    contents = default
-    if exists(file_path):
-        contents = yaml.load(open(file_path, "r"), Loader=yaml.FullLoader)
-        if not contents:
-            contents = default
-    return contents
-
-
-def get_authorised_users(mu2eorg, repo, branch="all"):
-    file_path = join(repo_config.CONFIG_DIR, "auth_teams.yaml")
-    yaml_contents = {}
-    with open(file_path, "r") as f:
-        yaml_contents = yaml.load(open(file_path, "r"), Loader=yaml.FullLoader)
-    authed_users = []
-    authed_teams = yaml_contents["all"]
-    if branch in yaml_contents:
-        authed_teams += yaml_contents[branch]
-
-    authed_teams = set(authed_teams)
-    log.info("Authorised Teams: %s", ", ".join(authed_teams))
-
-    for team_slug in authed_teams:
-        teamobj = mu2eorg.get_team_by_slug(team_slug)
-        authed_users += [mem.login for mem in teamobj.get_members()]
-
-    # users authorised to communicate with this bot
-    return set(authed_users), authed_teams
-
-
-def post_on_pr(issue, comment, previous_bot_comments):
-    if comment in previous_bot_comments:
-        log.warning(
-            "SPAM PROTECTION - We are posting something we already posted before! Something is wrong!"
-        )
-        return
-    issue.create_comment(comment)
-
-
-def process_pr(
-    repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=False, child_call=0
-):
+def process_pr(gh, repo, issue, dryRun=False, child_call=0):
     if child_call > 2:
         log.warning("Stopping recursion")
         return
@@ -257,21 +56,16 @@ def process_pr(
             # Let people know on other PRs that (since this one was merged) the
             # base ref HEAD will have changed
             log.info(
-                "Triggering check on all other open PRs as this PR was merged within the last 2 minutes."
+                "Triggering check on all other open PRs as "
+                "this PR was merged within the last 2 minutes."
             )
             pulls_to_check = repo.get_pulls(state="open", base=pr.base.ref)
             for pr_ in pulls_to_check:
-                # Call process_pr within process_pr, while incrementing child_call as a
-                # precautionary measure to avoid runaway recursion (for whatever reason)
-                # although I don't forsee that ever happening
                 process_pr(
-                    repo_config,
                     gh,
                     repo,
                     pr_.as_issue(),
                     dryRun,
-                    cmsbuild_user=cmsbuild_user,
-                    force=force,
                     child_call=child_call + 1,
                 )
 
@@ -281,13 +75,6 @@ def process_pr(
 
     mu2eorg = gh.get_organization("Mu2e")
     trusted_user = mu2eorg.has_in_members(issue.user)
-
-    # if not trusted_user:
-    #     print ('Ignoring: PR not from an organisation member')
-    #     if not 'CI unavailable' in [x.name for x in issue.labels]:
-    #         issue.create_comment(PR_AUTHOR_NONMEMBER)
-    #         issue.edit(labels=['CI unavailable'])
-    #     return
 
     authorised_users, authed_teams = get_authorised_users(
         mu2eorg, repo, branch=pr.base.ref
@@ -324,7 +111,7 @@ def process_pr(
     log.debug("Build Targets changed:")
     log.debug("\n".join(["- %s" % s for s in modified_top_level_folders]))
 
-    watchers = read_repo_file(repo_config, "watchers.yaml", {})
+    watchers = config.watchers
 
     # Figure out who is watching the modified packages and notify them
     log.debug("watchers: %s", ", ".join(watchers))
@@ -342,7 +129,7 @@ def process_pr(
                         ):
                             watcher_list.append(user)
                             break
-                except:
+                except Exception:
                     log.warning(
                         "ERROR: Possibly bad regex for watching user %s: %s"
                         % (user, pkgpatt)
@@ -350,11 +137,13 @@ def process_pr(
 
         watcher_list = set(watcher_list)
         if len(watcher_list) > 0:
-            watcher_text = "The following users requested to be notified about changes to these packages:\n"
+            watcher_text = (
+                "The following users requested to be notified about "
+                "changes to these packages:\n"
+            )
             watcher_text += ", ".join(["@%s" % x for x in watcher_list])
-    except Exception as e:
-        log.error("There was a problem while trying to build the watcher list...")
-        log.error("%r" % e)
+    except Exception:
+        log.exception("There was a problem while trying to build the watcher list...")
 
     # get required tests
     test_requirements = test_suites.get_tests_for(modified_top_level_folders)
@@ -500,14 +289,16 @@ def process_pr(
         and not test_statuses["build"] == "pending"
     ):
         log.info(
-            "The base branch HEAD has changed or we didn't know the base branch of the last test. We need to reset the status of the build test and notify."
+            "The base branch HEAD has changed or we didn't know the base branch of the last test."
+            " We need to reset the status of the build test and notify."
         )
         test_triggered["build"] = False
         test_statuses["build"] = "pending"
         test_status_exists["build"] = False
     elif base_branch_HEAD_changed:
         log.info(
-            "The build test status is not present or has already been reset. We will not notify about the changed HEAD."
+            "The build test status is not present or has already been reset. "
+            "We will not notify about the changed HEAD."
         )
         base_branch_HEAD_changed = False
 
@@ -551,7 +342,8 @@ def process_pr(
             test_statuses["build"] = "pending"
             test_status_exists["build"] = False
             log.info(
-                "There's no record of when we last triggered the build test, and the status is not pending, so we are resetting the status."
+                "There's no record of when we last triggered the build test, "
+                "and the status is not pending, so we are resetting the status."
             )
 
     # now process PR comments that come after when
@@ -560,7 +352,7 @@ def process_pr(
     comments = issue.get_comments()
     for comment in comments:
         # loop through once to ascertain when the bot last commented
-        if comment.user.login == repo_config.CMSBUILD_USER:
+        if comment.user.login == config.main["bot"]["username"]:
             if last_time_seen is None or last_time_seen < comment.created_at:
                 not_seen_yet = False
                 last_time_seen = comment.created_at
@@ -577,7 +369,7 @@ def process_pr(
 
     # now we process comments
     for comment in comments:
-        if comment.user.login == repo_config.CMSBUILD_USER:
+        if comment.user.login == config.main["bot"]["username"]:
             bot_comments += [comment.body.strip()]
 
         # Ignore all messages which are before last commit.
@@ -597,8 +389,8 @@ def process_pr(
 
         # neglect comments by un-authorised users
         if (
-            not comment.user.login in authorised_users
-            or comment.user.login == repo_config.CMSBUILD_USER
+            comment.user.login not in authorised_users
+            or comment.user.login == config.main["bot"]["user"]
         ):
             log.debug(
                 "IGNORE COMMENT (unauthorised, or bot user) - %s", comment.user.login
@@ -606,7 +398,7 @@ def process_pr(
             continue
 
         for react in comment.get_reactions():
-            if react.user.login == repo_config.CMSBUILD_USER:
+            if react.user.login == config.main["bot"]["user"]:
                 log.debug(
                     "IGNORE COMMENT (we've seen it and reacted to say we've seen it) - %s",
                     comment.user.login,
@@ -635,7 +427,8 @@ def process_pr(
                 ):
                     log.debug("Current test status: %s", test_statuses[test])
                     log.info(
-                        "The test has already been triggered for this ref. It will not be triggered again."
+                        "The test has already been triggered for this ref. "
+                        "It will not be triggered again."
                     )
                     tests_already_triggered.append(test)
                     reaction_t = "confused"
@@ -768,8 +561,8 @@ def process_pr(
                     if labelcontent in label.name:
                         label.edit(label.name, col)
                         break
-    except:
-        log.error("Failed to set label colours!")
+    except Exception:
+        log.exception("Failed to set label colours!")
 
     # construct a reply if tests have been triggered.
     tests_triggered_msg = ""

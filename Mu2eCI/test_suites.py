@@ -1,24 +1,24 @@
-import repo_config
 import re
+import config
 
-MU2E_BOT_USER = repo_config.CMSBUILD_USER  # "FNALbuild"
+MU2E_BOT_USER = config.main["bot"]["username"]  # "FNALbuild"
 
 # all default tests
 TEST_REGEXP_MU2E_DEFTEST_TRIGGER = (
-    "(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(run\s+test(s|)|test)" % MU2E_BOT_USER
+    r"(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(run\s+test(s|)|test)" % MU2E_BOT_USER
 )
 REGEX_DEFTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_DEFTEST_TRIGGER, re.I | re.M)
 
 # build test
 TEST_REGEXP_MU2E_BUILDTEST_TRIGGER = (
-    "(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(build)|(run\s+build\s+test(s|))"
+    r"(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(build)|(run\s+build\s+test(s|))"
     % MU2E_BOT_USER
 )
 REGEX_BUILDTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_BUILDTEST_TRIGGER, re.I | re.M)
 
 # build test WITH validation
 TEST_REGEXP_MU2E_BUILDTEST_TRIGGER_VAL = (
-    "(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)((build)|(run\s+build\s+test(s|)))(\s+and\s+validat(e|ion))"
+    r"(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)((build)|(run\s+build\s+test(s|)))(\s+and\s+validat(e|ion))"
     % MU2E_BOT_USER
 )
 REGEX_BUILDTEST_MU2E_PR_VAL = re.compile(
@@ -28,26 +28,26 @@ REGEX_BUILDTEST_MU2E_PR_VAL = re.compile(
 
 # code test
 TEST_REGEXP_MU2E_LINTTEST_TRIGGER = (
-    "(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(run\s+(code\s*)(test(s|)|check(s|)))"
+    r"(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(run\s+(code\s*)(test(s|)|check(s|)))"
     % MU2E_BOT_USER
 )
 REGEX_LINTTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_LINTTEST_TRIGGER, re.I | re.M)
 
 # physics validation
 TEST_REGEXP_MU2E_VALIDATION_TRIGGER = (
-    "(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(run\s+validation)" % MU2E_BOT_USER
+    r"(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(run\s+validation)" % MU2E_BOT_USER
 )
 REGEX_VALIDATIONTEST_MU2E_PR = re.compile(
     TEST_REGEXP_MU2E_VALIDATION_TRIGGER, re.I | re.M
 )
 
 TEST_REGEXP_CUSTOM_TEST_TRIGGER = (
-    "(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(run\s+tests\s+|run\s+)(.+)(,\s*.+)*(\.|$)"
+    r"(@%s)(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)(run\s+tests\s+|run\s+)(.+)(,\s*.+)*(\.|$)"
     % MU2E_BOT_USER
 )
 REGEX_CUSTOM_TEST_MU2E_PR = re.compile(TEST_REGEXP_CUSTOM_TEST_TRIGGER, re.I | re.M)
 
-TEST_MENTIONED = "(@%s)(\s*[,:;]*\s+|\s+)" % MU2E_BOT_USER
+TEST_MENTIONED = r"(@%s)(\s*[,:;]*\s+|\s+)" % MU2E_BOT_USER
 regex_mentioned = re.compile(TEST_MENTIONED, re.I | re.M)
 
 
@@ -72,7 +72,7 @@ def get_test_name(alias):
 
 
 def get_test_alias(test):
-    if not test in TEST_ALIASES:
+    if test not in TEST_ALIASES:
         return "mu2e/unrecognised"
     return TEST_ALIASES[test][0]
 
