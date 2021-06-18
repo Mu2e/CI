@@ -390,7 +390,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
         # neglect comments by un-authorised users
         if (
             comment.user.login not in authorised_users
-            or comment.user.login == config.main["bot"]["user"]
+            or comment.user.login == config.main["bot"]["username"]
         ):
             log.debug(
                 "IGNORE COMMENT (unauthorised, or bot user) - %s", comment.user.login
@@ -398,7 +398,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
             continue
 
         for react in comment.get_reactions():
-            if react.user.login == config.main["bot"]["user"]:
+            if react.user.login == config.main["bot"]["username"]:
                 log.debug(
                     "IGNORE COMMENT (we've seen it and reacted to say we've seen it) - %s",
                     comment.user.login,
