@@ -97,9 +97,9 @@ def check_test_cmd_mu2e(full_comment, repository):
         handle = handler(match)
 
         if handle is None:
-            log.debug(regex.pattern, "MATCHED - BUT NoneType HANDLE RETURNED")
+            log.debug("MATCHED - BUT NoneType HANDLE RETURNED - %s", str(regex.pattern))
             continue
-        log.debug(regex.pattern, "MATCHED")
+        log.debug("MATCHED - %s", str(regex.pattern))
         return handle, True
 
     if test_suites.regex_mentioned.search(full_comment) is not None:
