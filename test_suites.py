@@ -1,8 +1,6 @@
 import repo_config
 import re
 
-from logger import log
-
 MU2E_BOT_USER = repo_config.CMSBUILD_USER  # "FNALbuild"
 
 # all default tests
@@ -85,7 +83,6 @@ def process_custom_test_request(matched_re):
         for x in matched_re.group(5).split(",")
         if x.strip().lower() in SUPPORTED_TESTS
     ]
-    print("tests requested:")
     if len(testlist) == 0:
         return None
     return [testlist, "current"]
