@@ -58,7 +58,7 @@ args = parser.parse_args()
 if __name__ == "__main__":
     gh = Github(login_or_token=os.environ["GITHUBTOKEN"], retry=3)
     try:
-        repo = gh.get_repo(args.repo)
+        repo = gh.get_repo(args.repository)
         pr = repo.get_issue(args.pullrequest)
         repo.get_commit(sha=args.commit).create_status(
             state=args.test_state,
