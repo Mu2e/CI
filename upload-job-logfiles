@@ -2,44 +2,48 @@
 """
 Upload logfiles to Gist
 """
-
-from os.path import expanduser, dirname, abspath, join, exists
-from sys import exit
-import re, sys, os
+import sys
+import os
 from socket import setdefaulttimeout
-setdefaulttimeout(120)
-
 from github import Github, InputFileContent
 
+setdefaulttimeout(120)
+
+
 def prepare_file(filename):
-  contents_text=''
-  with open(filename, 'r') as f:
-    contents_text = f.read()
-  path, tail = os.path.split(filename)
-  
-  print ("Prepared file: %s" % tail, file=sys.stderr)
-  
-  return tail, contents_text
+    contents_text = ""
+    with open(filename, "r") as f:
+        contents_text = f.read()
+    path, tail = os.path.split(filename)
+
+    print("Prepared file: %s" % tail, file=sys.stderr)
+
+    return tail, contents_text
+
 
 # pull out basic jenkins environment info
-REPOSITORY = os.environ['REPOSITORY']
-PR_NUMBER = os.environ['PULL_REQUEST']
-PR_REV = os.environ['COMMIT_SHA']
-MASTER_REV = os.environ['MASTER_COMMIT_SHA']
+REPOSITORY = os.environ["REPOSITORY"]
+PR_NUMBER = os.environ["PULL_REQUEST"]
+PR_REV = os.environ["COMMIT_SHA"]
+MASTER_REV = os.environ["MASTER_COMMIT_SHA"]
 
 # all arguments point to logfiles to be uploaded, in argument order
 
 files_to_upload = {}
 for filename in sys.argv[1:]:
-  gist_fn, content = prepare_file(filename)
-  files_to_upload[gist_fn] = InputFileContent(content) # {'content': content}
+    gist_fn, content = prepare_file(filename)
+    files_to_upload[gist_fn] = InputFileContent(content)  # {'content': content}
 
 fmt = (REPOSITORY, PR_NUMBER, PR_REV, MASTER_REV)
 
-gh = Github(login_or_token=os.environ['GITHUBTOKEN'], retry=3)
+gh = Github(login_or_token=os.environ["GITHUBTOKEN"], retry=3)
 gh_auth_user = gh.get_user()
-gist = gh_auth_user.create_gist(public=False, files=files_to_upload, description="%s CI artifacts for Mu2e/Offline PR #%s. PR commit %s tested with base branch commit %s." % fmt)
+gist = gh_auth_user.create_gist(
+    public=False,
+    files=files_to_upload,
+    description="%s CI artifacts for Mu2e/Offline PR #%s. PR commit %s tested with base branch commit %s."
+    % fmt,
+)
 
 # print gist link
-print (gist.url)
-
+print(gist.url)

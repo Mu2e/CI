@@ -1,0 +1,7 @@
+bot:
+  username: FNALbuild
+
+supported_repos:
+  - Mu2e/Offline
+
+jenkins_server: https://buildmaster.fnal.gov/buildmaster

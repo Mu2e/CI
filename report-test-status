@@ -2,91 +2,70 @@
 """
 Updates the git commit status
 """
-from __future__ import print_function
+
+import sys
+import os
+import argparse
 from github import Github
-from os.path import expanduser, dirname, abspath, join, exists
-from optparse import OptionParser
-from sys import exit
-import re, sys
 from socket import setdefaulttimeout
+from Mu2eCI.logger import log
 
 setdefaulttimeout(120)
-SCRIPT_DIR = dirname(abspath(sys.argv[0]))
 
-
-import repo_config
+parser = argparse.ArgumentParser(
+    description="Process a pull request given a repository and PR number."
+)
+parser.add_argument("--pullrequest", type=int, help="The Pull Request ID.")
+parser.add_argument(
+    "--repository",
+    type=str,
+    help="The GitHub repository. Must be in the format e.g. Mu2e/Offline",
+)
+parser.add_argument(
+    "--dry-run",
+    type=bool,
+    default=False,
+    help="Is this a dry run? i.e. don't touch GitHub.",
+)
+parser.add_argument(
+    "--message",
+    type=str,
+    help="The status message.",
+)
+parser.add_argument(
+    "--test-name",
+    type=str,
+    help="The test name.",
+)
+parser.add_argument(
+    "--test-name",
+    type=str,
+    help="The test state.",
+    choices=["pending", "failure", "success", "error"],
+)
+parser.add_argument(
+    "--commit",
+    type=str,
+    help="The test commit.",
+)
+parser.add_argument(
+    "--url",
+    type=str,
+    help="The git commit status URL.",
+)
+args = parser.parse_args()
 
 if __name__ == "__main__":
-    parser = OptionParser(
-        usage="%prog -p|--pullrequest <number> -m|--message <message> [-r|--repository <repo>] [-n|--dry-run]"
-    )
-    parser.add_option(
-        "-r",
-        "--repository",
-        dest="repo",
-        help="Github Repository name.",
-        type=str,
-        default="Mu2e/Offline",
-    )
-    parser.add_option(
-        "-p",
-        "--pullrequest",
-        dest="pr",
-        help="Github Pull Request Number e.g. 10500",
-        type="int",
-        metavar="N",
-    )
-    parser.add_option(
-        "-m", "--message", dest="msg", help="Git commit status message", type="str"
-    )
-    parser.add_option(
-        "-n",
-        "--test-name",
-        dest="test_name",
-        help="Git commit status test name",
-        type="str",
-    )
-    parser.add_option(
-        "-s",
-        "--test-state",
-        dest="test_state",
-        help="Git commit status test state",
-        type="str",
-    )
-    parser.add_option(
-        "-c",
-        "--commit",
-        dest="commit",
-        help="Git commit",
-        type="str",
-    )
-    parser.add_option(
-        "-u",
-        "--url",
-        dest="url",
-        help="git commit status url",
-        type="str",
-    )
-    opts, args = parser.parse_args()
-
-    if not opts.pr:
-        parser.error("Missing pull request number : -p|--pullrequest <number>")
-
-    import repo_config
-    from comment_gh_pr import comment_gh_pr
-    from os import environ
-
-    gh = Github(login_or_token=environ["GITHUBTOKEN"], retry=3)
+    gh = Github(login_or_token=os.environ["GITHUBTOKEN"], retry=3)
     try:
-        repo = gh.get_repo(opts.repo)
-        pr = repo.get_issue(opts.pr)
-
-        repo.get_commit(sha=opts.commit).create_status(
-            state=opts.test_state,
-            target_url=opts.url,
-            description=opts.msg,
-            context=opts.test_name,
+        repo = gh.get_repo(args.repo)
+        pr = repo.get_issue(args.pullrequest)
+        repo.get_commit(sha=args.commit).create_status(
+            state=args.test_state,
+            target_url=args.url,
+            description=args.message,
+            context=args.test_name,
         )
-    except Exception as e:
-        print("Failed to change git commit status: ", e)
-        exit(1)
+    except Exception:
+        log.exception("Failed to change git commit status: ")
+        sys.exit(1)
