@@ -407,7 +407,9 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
         reaction_t = None
         # now look for bot triggers
         # check if the comment has triggered a test
-        trigger_search, mentioned = check_test_cmd_mu2e(comment.body, repo.full_name)
+        trigger_search, mentioned, extra_env = check_test_cmd_mu2e(
+            comment.body, repo.full_name
+        )
         tests_already_triggered = []
 
         if trigger_search is not None:
@@ -447,7 +449,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
                     test_triggered[test] = True
 
                     # add the test to the queue of tests to trigger
-                    tests_to_trigger.append(test)
+                    tests_to_trigger.append((test, extra_env))
                     reaction_t = "+1"
         elif mentioned:
             # we didn't recognise any commands!
@@ -464,7 +466,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
             for test in test_requirements:
                 test_statuses[test] = "pending"
                 test_triggered[test] = True
-                tests_to_trigger.append(test)
+                tests_to_trigger.append((test, {}))
             tests_to_trigger = set(tests_to_trigger)
 
     # now,
@@ -473,15 +475,22 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
     # - apply labels according to the state of the latest commit of the PR
     # - make a comment if required
     jobs_have_stalled = False
+
+    triggered_tests, extra_envs = list(zip(*tests_to_trigger))
     for test, state in test_statuses.items():
         if test in legit_tests:
             labels.append("%s %s" % (test, state))
 
-        if test in tests_to_trigger:
+        if test in triggered_tests:
             log.info("Test will now be triggered! %s", test)
             # trigger the test in jenkins
             create_properties_file_for_test(
-                test, repo.full_name, prId, git_commit.sha, master_commit_sha
+                test,
+                repo.full_name,
+                prId,
+                git_commit.sha,
+                master_commit_sha,
+                extra_envs[triggered_tests.index(test)],
             )
             if not dryRun:
                 if test == "build":
@@ -577,7 +586,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
 
         tests_triggered_msg = TESTS_TRIGGERED_CONFIRMATION.format(
             commit_link=commitlink,
-            test_list=", ".join(tests_to_trigger),
+            test_list=", ".join(list(zip(*tests_to_trigger))[0]),
             tests_already_running_msg=already_running_msg,
             build_queue_str=get_build_queue_size(),
         )
