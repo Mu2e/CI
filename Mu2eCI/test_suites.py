@@ -15,7 +15,12 @@ REGEX_DEFTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_DEFTEST_TRIGGER, re.I | re.M
 # Group 1: @FNALbuild
 # Group 8: [with #257, #322, ...]
 # Group 11: [without merge]
-TEST_REGEXP_MU2E_BUILDTEST_TRIGGER = rf"(@{MU2E_BOT_USER})(\s*[,:;]*\s+|\s+)(please\s*[,]*\s+|)((build)|(run\s+build\s+test(s|)))(?P<test_with>\s+with\s+(#[0-9]+([\s,]+|))+|)(?P<wo_merge>\s*without\s+merge|)"
+TEST_REGEXP_MU2E_BUILDTEST_TRIGGER = (
+    rf"(@{MU2E_BOT_USER})(\s*[,:;]*\s+|\s+)"
+    r"(please\s*[,]*\s+|)((build)|(run\s+build\s+test(s|)))"
+    r"(?P<test_with>\s+with\s+(#[0-9]+([\s,]+|))+|)"
+    r"(?P<wo_merge>\s*without\s+merge|)"
+)
 REGEX_BUILDTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_BUILDTEST_TRIGGER, re.I | re.M)
 
 # build test WITH validation
