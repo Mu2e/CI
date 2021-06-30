@@ -57,7 +57,7 @@ REGEX_CUSTOM_TEST_MU2E_PR = re.compile(TEST_REGEXP_CUSTOM_TEST_TRIGGER, re.I | r
 TEST_MENTIONED = r"(@%s)(\s*[,:;]*\s+|\s+)" % MU2E_BOT_USER
 regex_mentioned = re.compile(TEST_MENTIONED, re.I | re.M)
 
-VALID_PR_SPEC = re.compile("^(Mu2e\/|)(?P<repo>[A-Za-z0-9_\-]+|)#(?P<pr_id>[0-9]+)$")
+VALID_PR_SPEC = re.compile(r"^(Mu2e\/|)(?P<repo>[A-Za-z0-9_\-]+|)#(?P<pr_id>[0-9]+)$")
 
 
 SUPPORTED_TESTS = ["build", "code checks", "validation"]
