@@ -82,7 +82,7 @@ def check_test_cmd_mu2e(full_comment, repository):
     # desc: code checks -> mu2e/codechecks (context name) -> [jenkins project name]
     # desc: integration build tests -> mu2e/buildtest -> [jenkins project name]
     # desC: physics validation -> mu2e/validation -> [jenkins project name]
-    log.debug(" ====== matching regex to comment ======")
+    log.debug("Matching regular expressions to this comment.")
     try:
         log.debug(repr(full_comment))
     except Exception:

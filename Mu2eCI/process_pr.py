@@ -1,3 +1,4 @@
+from logging import exception
 import re
 from datetime import datetime
 from socket import setdefaulttimeout
@@ -405,11 +406,19 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
                 )
 
         reaction_t = None
+        trigger_search, mentioned, extra_env = None, None, None
         # now look for bot triggers
         # check if the comment has triggered a test
-        trigger_search, mentioned, extra_env = check_test_cmd_mu2e(
-            comment.body, repo.full_name
-        )
+        try:
+            trigger_search, mentioned, extra_env = check_test_cmd_mu2e(
+                comment.body, repo.full_name
+            )
+        except ValueError:
+            log.exception("Failed to trigger a test due to invalid inputs")
+            reaction_t = "-1"
+        except Exception:
+            log.exception("Failed to trigger a test.")
+
         tests_already_triggered = []
 
         if trigger_search is not None:

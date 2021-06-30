@@ -57,6 +57,8 @@ REGEX_CUSTOM_TEST_MU2E_PR = re.compile(TEST_REGEXP_CUSTOM_TEST_TRIGGER, re.I | r
 TEST_MENTIONED = r"(@%s)(\s*[,:;]*\s+|\s+)" % MU2E_BOT_USER
 regex_mentioned = re.compile(TEST_MENTIONED, re.I | re.M)
 
+VALID_PR_SPEC = re.compile("^(Mu2e/|)(?P<repo>[A-Za-z0-9_\-]+|)#(?P<pr_id>[0-9]+)$")
+
 
 SUPPORTED_TESTS = ["build", "code checks", "validation"]
 DEFAULT_TESTS = ["build"]
@@ -110,22 +112,34 @@ def get_stall_time(name):
 def build_test_configuration(matched_re):
     # @FNALbuild build [with #257, #322, ...] [without merge]
     # @FNALbuild run build test[s] [with #257, #322, ...] [without merge]
+    # @FNALbuild run build test[s] [with Mu2e/Production#257, #322, ...] [without merge]
 
     test_with = matched_re.group("test_with")
     no_merge = matched_re.group("wo_merge")
 
     test_with = (
-        (test_with.replace("with", "").replace("#", "").replace(" ", "").strip())
-        if len(test_with.strip()) > 0
-        else ""
-    )
+        (test_with.replace("with", "").strip()) if len(test_with.strip()) > 0 else ""
+    ).strip()
+
+    # Each item in the comma separated list must match this:
+    # ^(Mu2e|)([A-Za-z0-9_\-]+|)#([0-9]+)$
+    prs_to_include = []
+    if len(test_with) > 0:
+        for test_with_pr in test_with.split(","):
+            match = VALID_PR_SPEC.match(test_with_pr)
+            if match is None:
+                # Bad, or unsanitary PR spec.
+                raise ValueError(f"Bad PR specification: {test_with_pr}")
+            repository = match.group("repo")
+            pr_id = match.group("pr_id")
+            prs_to_include.append(f"{repository}#{pr_id}")
 
     no_merge = "1" if len(no_merge.strip()) > 0 else "0"
 
     return (
         ["build"],
         "current",
-        {"TEST_WITH_PR": test_with, "NO_MERGE": no_merge},
+        {"TEST_WITH_PR": ",".join(prs_to_include), "NO_MERGE": no_merge},
     )
 
 
