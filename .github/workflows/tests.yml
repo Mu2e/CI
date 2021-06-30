@@ -1,4 +1,4 @@
-name: mu2e-ci-bot-lint
+name: Tests
 
 on: [push]
 
