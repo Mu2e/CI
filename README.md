@@ -1,6 +1,6 @@
 # CI
 
-https://github.com/Mu2e/CI/actions/workflows/tests.yml/badge.svg
+![CI test status](https://github.com/Mu2e/CI/actions/workflows/tests.yml/badge.svg)
 
 A GitHub bot (@FNALbuild) which handles continuous integration and tests for the Mu2e Experiment. Inspired by CMS-BOT.
 
