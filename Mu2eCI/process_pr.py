@@ -1,4 +1,3 @@
-from logging import exception
 import re
 from datetime import datetime
 from socket import setdefaulttimeout
