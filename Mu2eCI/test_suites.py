@@ -1,5 +1,6 @@
 import re
 from Mu2eCI import config
+from Mu2eCI.logger import log
 
 MU2E_BOT_USER = config.main["bot"]["username"]  # "FNALbuild"
 
@@ -120,13 +121,14 @@ def build_test_configuration(matched_re):
     test_with = (
         (test_with.replace("with", "").strip()) if len(test_with.strip()) > 0 else ""
     ).strip()
+    log.debug(f"test_with string to process: {test_with}")
 
     # Each item in the comma separated list must match this:
     # ^(Mu2e|)([A-Za-z0-9_\-]+|)#([0-9]+)$
     prs_to_include = []
     if len(test_with) > 0:
         for test_with_pr in test_with.split(","):
-            match = VALID_PR_SPEC.match(test_with_pr)
+            match = VALID_PR_SPEC.match(test_with_pr.strip())
             if match is None:
                 # Bad, or unsanitary PR spec.
                 raise ValueError(f"Bad PR specification: {test_with_pr}")
