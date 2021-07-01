@@ -88,7 +88,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
 
     not_seen_yet = True
     last_time_seen = None
-    labels = []
+    labels = set()
 
     # commit test states:
     test_statuses = {}
@@ -195,21 +195,9 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
     commit_status = last_commit.get_statuses()
 
     # we can translate git commit status API 'state' strings if needed.
-    state_labels = {
-        "error": "error",
-        "failure": "failed",
-        "success": "finished",
-    }
+    state_labels = config.main["labels"]["states"]
 
-    state_labels_colors = {
-        "error": "d73a4a",
-        "fail": "d2222d",
-        "pending": "ffbf00",
-        "running": "a4e8f9",
-        "success": "238823",
-        "finish": "238823",
-        "stalled": "ededed",
-    }
+    state_labels_colors = config.main["labels"]["colors"]
 
     commit_status_time = {}
     test_urls = {}
@@ -487,7 +475,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
     triggered_tests, extra_envs = list(zip(*tests_to_trigger))
     for test, state in test_statuses.items():
         if test in legit_tests:
-            labels.append("%s %s" % (test, state))
+            labels.add(f"{test} {state}")
 
         if test in triggered_tests:
             log.info("Test will now be triggered! %s", test)
@@ -550,6 +538,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
                 "Git status created for SHA %s test %s - since there wasn't one already."
                 % (git_commit.sha, test)
             )
+            labels.add(f"{test} {state}")
             # indicate that the test is pending but
             # we're still waiting for someone to trigger the test
             if not dryRun:
@@ -564,7 +553,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
 
     # check if labels have changed
     labelnames = {x.name for x in issue.labels if "unrecognised" not in x.name}
-    if labelnames != set(labels):
+    if labelnames != labels:
         if not dryRun:
             issue.edit(labels=list(labels))
         log.debug("Labels have changed to: %s", ", ".join(labels))
