@@ -82,7 +82,7 @@ def check_test_cmd_mu2e(full_comment, repository):
     # desc: code checks -> mu2e/codechecks (context name) -> [jenkins project name]
     # desc: integration build tests -> mu2e/buildtest -> [jenkins project name]
     # desC: physics validation -> mu2e/validation -> [jenkins project name]
-    log.debug(" ====== matching regex to comment ======")
+    log.debug("Matching regular expressions to this comment.")
     try:
         log.debug(repr(full_comment))
     except Exception:
@@ -111,12 +111,16 @@ def check_test_cmd_mu2e(full_comment, repository):
 
 
 def create_properties_file_for_test(
-    test, repository, pr_number, pr_commit_sha, master_commit_sha, dryRun=False
+    test,
+    repository,
+    pr_number,
+    pr_commit_sha,
+    master_commit_sha,
+    extra_env,
+    dryRun=False,
 ):
-    parameters = {}
-    if test == "build_and_val":
-        test = "build"
-        parameters["TRIGGER_VALIDATION"] = "1"
+    parameters = {**extra_env}
+
     repo_partsX = repository.replace("/", "-")  # mu2e/Offline ---> mu2e-Offline
     out_file_name = "trigger-mu2e-%s-%s-%s.properties" % (
         test.replace(" ", "-"),

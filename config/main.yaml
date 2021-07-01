@@ -6,3 +6,18 @@ supported_repos:
   - Mu2e/Production
 
 jenkins_server: https://buildmaster.fnal.gov/buildmaster
+
+
+labels:
+  states:
+    "error": "error"
+    "failure": "failed"
+    "success": "finished"
+  colors:
+    "error": "d73a4a"
+    "fail": "d2222d"
+    "pending": "ffbf00"
+    "running": "a4e8f9"
+    "success": "238823"
+    "finish": "238823"
+    "stalled": "ededed"

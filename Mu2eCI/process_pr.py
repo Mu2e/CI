@@ -88,7 +88,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
 
     not_seen_yet = True
     last_time_seen = None
-    labels = []
+    labels = set()
 
     # commit test states:
     test_statuses = {}
@@ -195,21 +195,9 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
     commit_status = last_commit.get_statuses()
 
     # we can translate git commit status API 'state' strings if needed.
-    state_labels = {
-        "error": "error",
-        "failure": "failed",
-        "success": "finished",
-    }
+    state_labels = config.main["labels"]["states"]
 
-    state_labels_colors = {
-        "error": "d73a4a",
-        "fail": "d2222d",
-        "pending": "ffbf00",
-        "running": "a4e8f9",
-        "success": "238823",
-        "finish": "238823",
-        "stalled": "ededed",
-    }
+    state_labels_colors = config.main["labels"]["colors"]
 
     commit_status_time = {}
     test_urls = {}
@@ -405,9 +393,19 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
                 )
 
         reaction_t = None
+        trigger_search, mentioned, extra_env = None, None, None
         # now look for bot triggers
         # check if the comment has triggered a test
-        trigger_search, mentioned = check_test_cmd_mu2e(comment.body, repo.full_name)
+        try:
+            trigger_search, mentioned, extra_env = check_test_cmd_mu2e(
+                comment.body, repo.full_name
+            )
+        except ValueError:
+            log.exception("Failed to trigger a test due to invalid inputs")
+            reaction_t = "-1"
+        except Exception:
+            log.exception("Failed to trigger a test.")
+
         tests_already_triggered = []
 
         if trigger_search is not None:
@@ -447,7 +445,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
                     test_triggered[test] = True
 
                     # add the test to the queue of tests to trigger
-                    tests_to_trigger.append(test)
+                    tests_to_trigger.append((test, extra_env))
                     reaction_t = "+1"
         elif mentioned:
             # we didn't recognise any commands!
@@ -464,7 +462,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
             for test in test_requirements:
                 test_statuses[test] = "pending"
                 test_triggered[test] = True
-                tests_to_trigger.append(test)
+                tests_to_trigger.append((test, {}))
             tests_to_trigger = set(tests_to_trigger)
 
     # now,
@@ -473,15 +471,22 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
     # - apply labels according to the state of the latest commit of the PR
     # - make a comment if required
     jobs_have_stalled = False
+
+    triggered_tests, extra_envs = list(zip(*tests_to_trigger))
     for test, state in test_statuses.items():
         if test in legit_tests:
-            labels.append("%s %s" % (test, state))
+            labels.add(f"{test} {state}")
 
-        if test in tests_to_trigger:
+        if test in triggered_tests:
             log.info("Test will now be triggered! %s", test)
             # trigger the test in jenkins
             create_properties_file_for_test(
-                test, repo.full_name, prId, git_commit.sha, master_commit_sha
+                test,
+                repo.full_name,
+                prId,
+                git_commit.sha,
+                master_commit_sha,
+                extra_envs[triggered_tests.index(test)],
             )
             if not dryRun:
                 if test == "build":
@@ -533,6 +538,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
                 "Git status created for SHA %s test %s - since there wasn't one already."
                 % (git_commit.sha, test)
             )
+            labels.add(f"{test} {state}")
             # indicate that the test is pending but
             # we're still waiting for someone to trigger the test
             if not dryRun:
@@ -547,7 +553,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
 
     # check if labels have changed
     labelnames = {x.name for x in issue.labels if "unrecognised" not in x.name}
-    if labelnames != set(labels):
+    if labelnames != labels:
         if not dryRun:
             issue.edit(labels=list(labels))
         log.debug("Labels have changed to: %s", ", ".join(labels))
@@ -577,7 +583,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
 
         tests_triggered_msg = TESTS_TRIGGERED_CONFIRMATION.format(
             commit_link=commitlink,
-            test_list=", ".join(tests_to_trigger),
+            test_list=", ".join(list(zip(*tests_to_trigger))[0]),
             tests_already_running_msg=already_running_msg,
             build_queue_str=get_build_queue_size(),
         )
