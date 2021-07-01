@@ -393,11 +393,11 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
                 )
 
         reaction_t = None
-        trigger_search, mentioned, extra_env = None, None, None
+        trigger_search, mentioned = None, None
         # now look for bot triggers
         # check if the comment has triggered a test
         try:
-            trigger_search, mentioned, extra_env = check_test_cmd_mu2e(
+            trigger_search, mentioned = check_test_cmd_mu2e(
                 comment.body, repo.full_name
             )
         except ValueError:
@@ -409,9 +409,10 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
         tests_already_triggered = []
 
         if trigger_search is not None:
-            tests, _ = trigger_search
+            tests, _, extra_env = trigger_search
             log.info("Test trigger found!")
             log.debug("Comment: %r", comment.body)
+            log.debug("Environment: %s", str(extra_env))
             log.info("Current test(s): %r" % tests_to_trigger)
             log.info("Adding these test(s): %r" % tests)
 
