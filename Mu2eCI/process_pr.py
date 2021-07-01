@@ -462,8 +462,8 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
             for test in test_requirements:
                 test_statuses[test] = "pending"
                 test_triggered[test] = True
-                tests_to_trigger.append((test, {}))
-            tests_to_trigger = set(tests_to_trigger)
+                if test not in [t[0] for t in tests_to_trigger]:
+                    tests_to_trigger.append((test, {}))
 
     # now,
     # - trigger tests if indicated (for this specific SHA.)
