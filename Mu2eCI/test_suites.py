@@ -18,8 +18,8 @@ REGEX_DEFTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_DEFTEST_TRIGGER, re.I | re.M
 # Group 11: [without merge]
 TEST_REGEXP_MU2E_BUILDTEST_TRIGGER = (
     rf"(@{MU2E_BOT_USER})(\s*[,:;]*\s+|\s+)"
-    r"(please\s*[,]*\s+|)((build)|(run\s+build\s+test(s|)))"
-    r"(?P<test_with>\s+with\s+(#[0-9]+([\s,]+|))+|)"
+    r"(please\s*[,]*\\s+|)((build)|(run\s+build\s+test(s|)))"
+    r"(?P<test_with>\s+with\s+((Mu2e\/[A-Za-z0-9_-]+|)#[0-9]+([\\s,]+|))+|)"
     r"(?P<wo_merge>\s*without\s+merge|)"
 )
 REGEX_BUILDTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_BUILDTEST_TRIGGER, re.I | re.M)
