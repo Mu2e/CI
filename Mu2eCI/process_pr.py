@@ -472,7 +472,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
     # - make a comment if required
     jobs_have_stalled = False
 
-    triggered_tests, extra_envs = list(zip(*tests_to_trigger))
+    triggered_tests, extra_envs = list(zip(*tests_to_trigger)) or ([], [])
     for test, state in test_statuses.items():
         if test in legit_tests:
             labels.add(f"{test} {state}")
