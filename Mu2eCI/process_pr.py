@@ -498,7 +498,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
                     # this is overlapped with the next, more human readable message
                     last_commit.create_status(
                         state="success",
-                        target_url="https://github.com/mu2e/Offline",
+                        target_url="https://github.com/mu2e/%s" % repo.name,
                         description="Last test triggered against %s"
                         % master_commit_sha[:8],
                         context="mu2e/buildtest/last",
@@ -506,7 +506,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
 
                 last_commit.create_status(
                     state="pending",
-                    target_url="https://github.com/mu2e/Offline",
+                    target_url="https://github.com/mu2e/%s" % repo.name,
                     description="The test has been triggered in Jenkins",
                     context=test_suites.get_test_alias(test),
                 )
@@ -525,7 +525,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
             log.info("Git status was pending, but the job has stalled.")
             last_commit.create_status(
                 state="error",
-                target_url="https://github.com/mu2e/Offline",
+                target_url="https://github.com/mu2e/%s" % repo.name,
                 description="The job has stalled on Jenkins. It can be re-triggered.",
                 context=test_suites.get_test_alias(test),
             )
@@ -547,7 +547,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
             if not dryRun:
                 last_commit.create_status(
                     state="pending",
-                    target_url="https://github.com/mu2e/Offline",
+                    target_url="https://github.com/mu2e/%s" % repo.name,
                     description="This test has not been triggered yet.",
                     context=test_suites.get_test_alias(test),
                 )
