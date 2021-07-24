@@ -3,31 +3,11 @@ name: Tests
 on: [push]
 
 jobs:
-  pre-commit:
-    name: "pre-commit"
-    runs-on: "ubuntu-latest"
-
-    steps:
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-
-      - name: "pre-commit Install"
-        run: pip install pre-commit
-
-      - uses: actions/checkout@v2
-
-      - name: "pre-commit"
-        run: pre-commit run --all
-
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.7, 3.8, 3.9]
-
-    needs: pre-commit
 
     steps:
       - uses: actions/checkout@v2
