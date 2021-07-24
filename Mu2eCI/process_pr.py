@@ -422,7 +422,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
                     test in test_triggered
                     and test_triggered[test]
                     and test in test_statuses
-                    and not test_statuses[test].strip() in ["failed", "error"]
+                    and not test_statuses[test].strip() in ["failed", "error", "success"]
                 ):
                     log.debug("Current test status: %s", test_statuses[test])
                     log.info(
