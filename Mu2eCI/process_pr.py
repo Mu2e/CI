@@ -323,6 +323,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
     if "build" in legit_tests and master_commit_sha_last_test is None:
         if "build" in test_statuses and test_statuses["build"] in [
             "success",
+            "finished",
             "error",
             "failure",
         ]:
@@ -423,7 +424,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
                     and test_triggered[test]
                     and test in test_statuses
                     and not test_statuses[test].strip()
-                    in ["failed", "error", "success"]
+                    in ["failed", "error", "success", "finished"]
                 ):
                     log.debug("Current test status: %s", test_statuses[test])
                     log.info(
