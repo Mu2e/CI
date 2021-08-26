@@ -9,7 +9,7 @@
 all:
   - write
 
-master:
+main:
   - fnalbuild-users
 
 Mu2eII_SM21:
