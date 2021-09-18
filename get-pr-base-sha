@@ -42,7 +42,8 @@ if __name__ == "__main__":
             raise RuntimeException("not a PR")
         pr = repository.get_pull(args.pr_id)
         prBaseRef = pr.base.ref
-        baseSha = repository.get_branch(prBaseRef).commit.sha 
+        baseSha = repository.get_branch(prBaseRef).commit.sha
+        log.info("{0} PR {1} base ref is {2}; the commit sha is {3}".format(args.repo, args.pr_id, prBaseRef, baseSha))
         with open(args.filename, "w") as out_file:
             out_file.write(baseSha)
         
