@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Prints the ref of the "base" branch of the given PR
+Saves the commit sha of the requested merge-into branch of a PR
 """
 
 import os
