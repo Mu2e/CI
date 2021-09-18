@@ -46,7 +46,7 @@ if __name__ == "__main__":
         log.info("{0} PR {1} base ref is {2}; the commit sha is {3}".format(args.repo, args.pr_id, prBaseRef, baseSha))
         with open(args.filename, "w") as out_file:
             out_file.write(baseSha)
-        
+
     except Exception as e:
         log.exception("Failed to get PR master commit sha for {0} PR {1}: {2}".format(repo, pr_id, str(e))
         sys.exit(1)
