@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+"""
+Saves the commit sha of the requested merge-into branch of a PR
+"""
+
+import os
+import sys
+import argparse
+from socket import setdefaulttimeout
+from github import Github
+
+from Mu2eCI import config
+from Mu2eCI.logger import log
+
+setdefaulttimeout(120)
+
+parser = argparse.ArgumentParser(
+    description="Process a pull request given a repository and PR number."
+)
+parser.add_argument(
+    "-r",
+    "--repo",
+    type=str,
+    help="The GitHub repository. Must be in the format e.g. Mu2e/Offline",
+    choices=config.main["supported_repos"],
+)
+parser.add_argument("-p", "--pr-id", type=int, help="The Pull Request ID.")
+parser.add_argument("-f", "--filename", type=str, help="File to write the base commit sha to")
+
+args = parser.parse_args()
+
+
+if __name__ == "__main__":
+    gh = Github(login_or_token=os.environ["GITHUBTOKEN"], retry=3)
+
+    try:
+        api_rate_limits(gh)
+        repository = gh.get_repo(args.repo)
+        issue = repository.get_issue(args.pr_id)
+        if not issue.pull_request:
+            log.warning("Failure: Not a PR")
+            raise RuntimeException("not a PR")
+        pr = repository.get_pull(args.pr_id)
+        prBaseRef = pr.base.ref
+        baseSha = repository.get_branch(prBaseRef).commit.sha
+        log.info("{0} PR {1} base ref is {2}; the commit sha is {3}".format(args.repo, args.pr_id, prBaseRef, baseSha))
+        with open(args.filename, "w") as out_file:
+            out_file.write(baseSha)
+
+    except Exception as e:
+        log.exception("Failed to get PR master commit sha for {0} PR {1}: {2}".format(repo, pr_id, str(e))
+        sys.exit(1)
