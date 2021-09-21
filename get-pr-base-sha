@@ -11,6 +11,7 @@ from github import Github
 
 from Mu2eCI import config
 from Mu2eCI.logger import log
+from Mu2eCI.common import api_rate_limits
 
 setdefaulttimeout(120)
 
@@ -56,7 +57,7 @@ if __name__ == "__main__":
     except Exception as e:
         log.exception(
             "Failed to get PR master commit sha for {0} PR {1}: {2}".format(
-                repo, pr_id, str(e)
+                args.repo, args.pr_id, str(e)
             )
         )
         sys.exit(1)
