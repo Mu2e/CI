@@ -48,5 +48,5 @@ if __name__ == "__main__":
             out_file.write(baseSha)
 
     except Exception as e:
-        log.exception("Failed to get PR master commit sha for {0} PR {1}: {2}".format(repo, pr_id, str(e))
+        log.exception("Failed to get PR master commit sha for {0} PR {1}: {2}".format(repo, pr_id, str(e)))
         sys.exit(1)
