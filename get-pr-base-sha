@@ -42,7 +42,7 @@ if __name__ == "__main__":
         issue = repository.get_issue(args.pr_id)
         if not issue.pull_request:
             log.warning("Failure: Not a PR")
-            raise RuntimeException("not a PR")
+            raise RuntimeError("not a PR")
         pr = repository.get_pull(args.pr_id)
         prBaseRef = pr.base.ref
         baseSha = repository.get_branch(prBaseRef).commit.sha
