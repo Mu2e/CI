@@ -25,7 +25,9 @@ parser.add_argument(
     choices=config.main["supported_repos"],
 )
 parser.add_argument("-p", "--pr-id", type=int, help="The Pull Request ID.")
-parser.add_argument("-f", "--filename", type=str, help="File to write the base commit sha to")
+parser.add_argument(
+    "-f", "--filename", type=str, help="File to write the base commit sha to"
+)
 
 args = parser.parse_args()
 
@@ -43,10 +45,18 @@ if __name__ == "__main__":
         pr = repository.get_pull(args.pr_id)
         prBaseRef = pr.base.ref
         baseSha = repository.get_branch(prBaseRef).commit.sha
-        log.info("{0} PR {1} base ref is {2}; the commit sha is {3}".format(args.repo, args.pr_id, prBaseRef, baseSha))
+        log.info(
+            "{0} PR {1} base ref is {2}; the commit sha is {3}".format(
+                args.repo, args.pr_id, prBaseRef, baseSha
+            )
+        )
         with open(args.filename, "w") as out_file:
             out_file.write(baseSha)
 
     except Exception as e:
-        log.exception("Failed to get PR master commit sha for {0} PR {1}: {2}".format(repo, pr_id, str(e)))
+        log.exception(
+            "Failed to get PR master commit sha for {0} PR {1}: {2}".format(
+                repo, pr_id, str(e)
+            )
+        )
         sys.exit(1)
