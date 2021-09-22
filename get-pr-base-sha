@@ -30,11 +30,11 @@ parser.add_argument(
     "-f", "--filename", type=str, help="File to write the base commit sha to"
 )
 parser.add_argument(
-    "-j", 
-    "--just-ref", 
+    "-j",
+    "--just-ref",
     type=bool,
     required=False,
-    help="If this arg is included at all, save the base ref name instead of base commit sha"
+    help="If this arg is included at all, save the base ref name instead of base commit sha",
 )
 
 args = parser.parse_args()
@@ -70,9 +70,5 @@ if __name__ == "__main__":
             exStr = "Failed to get PR base branch name for {0} PR {1}: {2}"
         else:
             exStr = "Failed to get PR master commit sha for {0} PR {1}: {2}"
-        log.exception(
-            exStr.format(
-                args.repo, args.pr_id, str(e)
-            )
-        )
+        log.exception(exStr.format(args.repo, args.pr_id, str(e)))
         sys.exit(1)
