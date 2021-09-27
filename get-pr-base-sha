@@ -29,6 +29,13 @@ parser.add_argument("-p", "--pr-id", type=int, help="The Pull Request ID.")
 parser.add_argument(
     "-f", "--filename", type=str, help="File to write the base commit sha to"
 )
+parser.add_argument(
+    "-j",
+    "--just-ref",
+    type=bool,
+    required=False,
+    help="If this arg is included at all, save the base ref name instead of base commit sha",
+)
 
 args = parser.parse_args()
 
@@ -52,12 +59,16 @@ if __name__ == "__main__":
             )
         )
         with open(args.filename, "w") as out_file:
-            out_file.write(baseSha)
+            if args.just_ref:
+                out_file.write(prBaseRef)
+            else:
+                out_file.write(baseSha)
 
     except Exception as e:
-        log.exception(
-            "Failed to get PR master commit sha for {0} PR {1}: {2}".format(
-                args.repo, args.pr_id, str(e)
-            )
-        )
+        exStr = None
+        if args.just_ref:
+            exStr = "Failed to get PR base branch name for {0} PR {1}: {2}"
+        else:
+            exStr = "Failed to get PR master commit sha for {0} PR {1}: {2}"
+        log.exception(exStr.format(args.repo, args.pr_id, str(e)))
         sys.exit(1)
