@@ -119,10 +119,14 @@ def build_test_configuration(matched_re):
     no_merge = matched_re.group("wo_merge")
 
     test_with = (
-        (test_with.replace("with", "").
-            replace("https://github.com/", "").
-            replace("/pull/", "#").
-            strip()) if len(test_with.strip()) > 0 else ""
+        (
+            test_with.replace("with", "")
+            .replace("https://github.com/", "")
+            .replace("/pull/", "#")
+            .strip()
+        )
+        if len(test_with.strip()) > 0
+        else ""
     ).strip()
     log.debug(f"test_with string to process: {test_with}")
 
