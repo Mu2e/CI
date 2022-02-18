@@ -126,6 +126,8 @@ def build_test_configuration(matched_re):
     ).strip()
     log.debug(f"test_with string to process: {test_with}")
 
+    # Each item in the comma separated list must match this:
+    # ^(Mu2e|)([A-Za-z0-9_\-]+|)#([0-9]+)$
     prs_to_include = []
     if len(test_with) > 0:
         for test_with_pr in test_with.split(","):
