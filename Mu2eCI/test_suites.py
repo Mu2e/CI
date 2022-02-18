@@ -15,11 +15,11 @@ REGEX_DEFTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_DEFTEST_TRIGGER, re.I | re.M
 # @FNALbuild run build test[s] [with #257, #322, ...] [without merge]
 # Group 1: @FNALbuild
 # Group 8: [with #257, #322, ...]
-# Group 11: [without merge]
+# Group 13: [without merge]
 TEST_REGEXP_MU2E_BUILDTEST_TRIGGER = (
     rf"(@{MU2E_BOT_USER})(\s*[,:;]*\s+|\s+)"
     r"(please\s*[,]*\\s+|)((build)|(run\s+build\s+test(s|)))"
-    r"(?P<test_with>\s+with\s+((Mu2e\/[A-Za-z0-9_-]+|)#[0-9]+([\\s,]+|))+|)"
+    r"(?P<test_with>\s+with\s+(((https://github\.com/|)Mu2e\/[A-Za-z0-9_-]+|)(/pull/|#)[0-9]+([\s,]+|))+|)"
     r"(?P<wo_merge>\s*without\s+merge|)"
 )
 REGEX_BUILDTEST_MU2E_PR = re.compile(TEST_REGEXP_MU2E_BUILDTEST_TRIGGER, re.I | re.M)
@@ -119,12 +119,13 @@ def build_test_configuration(matched_re):
     no_merge = matched_re.group("wo_merge")
 
     test_with = (
-        (test_with.replace("with", "").strip()) if len(test_with.strip()) > 0 else ""
+        (test_with.replace("with", "").
+            replace("https://github.com/", "").
+            replace("/pull/", "#").
+            strip()) if len(test_with.strip()) > 0 else ""
     ).strip()
     log.debug(f"test_with string to process: {test_with}")
 
-    # Each item in the comma separated list must match this:
-    # ^(Mu2e|)([A-Za-z0-9_\-]+|)#([0-9]+)$
     prs_to_include = []
     if len(test_with) > 0:
         for test_with_pr in test_with.split(","):
