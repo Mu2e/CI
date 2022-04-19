@@ -157,5 +157,4 @@ TESTS = [
     [REGEX_BUILDTEST_MU2E_PR, build_test_configuration],
     [REGEX_LINTTEST_MU2E_PR, lambda matchre: (["code checks"], "current", {})],
     [REGEX_VALIDATIONTEST_MU2E_PR, lambda matchre: (["validation"], "current", {})],
-    [REGEX_DEFTEST_MU2E_PR, lambda matchre: (DEFAULT_TESTS, "current", {})],
 ]
