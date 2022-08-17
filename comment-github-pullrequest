@@ -40,7 +40,7 @@ args = parser.parse_args()
 
 if __name__ == "__main__":
     gh = Github(login_or_token=os.environ["GITHUBTOKEN"], retry=3)
-
+    # comment
     try:
         msg = ""
         if len(args.report_file) > 0:
