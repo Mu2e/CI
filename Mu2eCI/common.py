@@ -90,7 +90,13 @@ def check_test_cmd_mu2e(full_comment, repository):
 
     for regex, handler in test_suites.TESTS:
         # returns the first match in the comment
-        match = regex.fullmatch(full_comment)
+
+        match = None
+        for line in full_comment.replace('\r','').split('\n'):
+            match = regex.fullmatch(line)
+            if match:
+                break
+
         if match is None:
             log.debug("NOT MATCHED - %s", str(regex.pattern))
             continue
