@@ -92,7 +92,7 @@ def check_test_cmd_mu2e(full_comment, repository):
         # returns the first match in the comment
 
         match = None
-        for line in full_comment.replace('\r','').split('\n'):
+        for line in full_comment.replace("\r", "").split("\n"):
             match = regex.fullmatch(line)
             if match:
                 break
