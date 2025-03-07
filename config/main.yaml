@@ -4,6 +4,7 @@ bot:
 supported_repos:
   - Mu2e/Offline
   - Mu2e/Production
+  - Mu2e/mu2e-trig-config
 
 jenkins_server: https://buildmaster.fnal.gov/buildmaster
 
