@@ -17,3 +17,5 @@
 resnegfk:
   - Mu2eG4
   - G4Helper
+  - GeomPrimitives
+  - GeometryService
