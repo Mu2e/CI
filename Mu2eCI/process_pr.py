@@ -114,7 +114,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
     watchers = config.watchers
 
     # Figure out who is watching the modified packages and notify them
-    log.debug("watchers: %s", ", ".join(watchers))
+    log.debug(f"watchers: {', '.join(watchers) if watchers else ''}")
     watcher_text = ""
     watcher_list = []
     try:
