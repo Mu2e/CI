@@ -406,6 +406,7 @@ def process_pr(gh, repo, issue, dryRun=False, child_call=0):
             reaction_t = "-1"
         except Exception:
             log.exception("Failed to trigger a test.")
+            reaction_t = "confused"
 
         tests_already_triggered = []
 
